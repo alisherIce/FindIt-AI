@@ -17,5 +17,43 @@ services:
       timeout: 5s
       retries: 10
 
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: findit-api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+psycopg://findit:findit_dev_password@db:5432/findit
+      HF_HOME: /root/.cache/huggingface
+    ports:
+      - "8000:8000"
+    volumes:
+      - findit_uploads:/app/uploads
+      - findit_model_cache:/root/.cache/huggingface
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: findit-web
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      api:
+        condition: service_healthy
+
 volumes:
   findit_postgres_data:
+  findit_uploads:
+  findit_model_cache:
