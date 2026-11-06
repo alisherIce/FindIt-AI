@@ -5,6 +5,7 @@ import {
   ArrowUpRight,
   BadgeCheck,
   BookOpen,
+  Building2,
   Check,
   ChevronDown,
   Clock3,
@@ -314,8 +315,9 @@ export default function App() {
           <span>findit<span className="brand-ai">.ai</span></span>
         </a>
         <nav className="top-nav" aria-label="Main navigation">
-          <a className="nav-active" href="#discover">Discover</a>
+          <a className="nav-active" href="#discover">Find an item</a>
           <a href="#how-it-works">How it works</a>
+          <a href="#organizations">For organizations</a>
         </nav>
         <div className="topbar-right">
           <span className="campus-chip"><span className="live-dot" /> Campus community</span>
@@ -360,6 +362,12 @@ export default function App() {
                 I found something <ArrowDownRight size={17} />
               </button>
             </div>
+            <div className="hero-quick-links">
+              <span>Popular searches</span>
+              {["Wallet", "Phone", "Keys", "Student ID"].map((term) => (
+                <button key={term} onClick={() => { setSearch(term); document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" }); }}>{term}</button>
+              ))}
+            </div>
             <div className="trust-line"><ShieldCheck size={16} /> Your item photos are processed privately.</div>
           </div>
           <div className="hero-art" aria-label="Illustration of a found item being returned">
@@ -383,6 +391,19 @@ export default function App() {
           <span><ShieldCheck size={16} /> Private by design</span>
           <span><Sparkles size={16} /> AI-powered matching</span>
           <span><MapPin size={16} /> Built for campus life</span>
+        </section>
+
+        <section className="proof-band" aria-label="How FindIt AI helps">
+          <div className="proof-copy">
+            <span className="eyebrow">A COMMUNITY THAT LOOKS OUT FOR YOU</span>
+            <h2>Every lost item has a way back.</h2>
+            <p>FindIt AI brings lost reports and found reports together in one searchable place, then helps surface visual matches.</p>
+          </div>
+          <div className="proof-points">
+            <div><strong>01</strong><span>Search by item and place</span></div>
+            <div><strong>02</strong><span>Compare possible matches</span></div>
+            <div><strong>03</strong><span>Reconnect with confidence</span></div>
+          </div>
         </section>
 
         <section className="stats-row" aria-label="Community report statistics">
@@ -474,20 +495,55 @@ export default function App() {
         </section>
 
         <section className="how-section" id="how-it-works">
-          <div className="eyebrow">A SMARTER WAY TO RECONNECT</div>
-          <h2>Three steps. One less thing to worry about.</h2>
+          <div className="eyebrow">SEARCH. MATCH. RECONNECT.</div>
+          <h2>Lost & found, made simple.</h2>
           <div className="how-grid">
             <div className="how-card"><span className="how-number">01</span><span className="how-icon"><UploadCloud size={22} /></span><h3>Post a photo</h3><p>Share a photo and a few details about the item you lost or found.</p></div>
             <div className="how-card"><span className="how-number">02</span><span className="how-icon"><Sparkles size={22} /></span><h3>Let AI look</h3><p>FindIt compares visual features and ranks reports that may match.</p></div>
             <div className="how-card"><span className="how-number">03</span><span className="how-icon"><BadgeCheck size={22} /></span><h3>Verify & reconnect</h3><p>Check the details privately and arrange a safe handover.</p></div>
           </div>
         </section>
+
+        <section className="organization-section" id="organizations">
+          <div className="organization-icon"><Building2 size={25} /></div>
+          <div className="organization-copy">
+            <span className="eyebrow">FOR UNIVERSITIES & ORGANIZATIONS</span>
+            <h2>Make lost & found easier for your whole community.</h2>
+            <p>Bring reports, searchable item records and AI-assisted matching into one clear workflow for your campus, event or venue.</p>
+          </div>
+          <div className="organization-actions">
+            <button className="button button-dark" onClick={() => openReport("found")}>Explore the platform <ArrowRight size={16} /></button>
+            <span>Built to grow beyond one campus.</span>
+          </div>
+        </section>
+
+        <section className="faq-section" aria-labelledby="faq-title">
+          <div className="faq-intro">
+            <span className="eyebrow">GOOD TO KNOW</span>
+            <h2 id="faq-title">A few helpful answers.</h2>
+            <p>FindIt AI helps people discover possible matches while keeping personal details protected.</p>
+          </div>
+          <div className="faq-list">
+            <details><summary>How do I report something I lost?</summary><p>Choose “I lost something”, add the item name, category, last-seen location and a photo, then submit your report.</p></details>
+            <details><summary>How does visual matching work?</summary><p>When available, the matching service compares item images and returns possible matches. Always verify ownership using details that are not public.</p></details>
+            <details><summary>Can I report an item I found?</summary><p>Yes. Select “I found something” and include where and when you found it so its owner has useful clues.</p></details>
+            <details><summary>Is a visual match proof that an item is mine?</summary><p>No. A match is only a suggestion. Confirm distinctive details privately before arranging a safe handover.</p></details>
+          </div>
+        </section>
       </main>
 
-      <footer className="footer">
-        <a className="brand" href="/"><span className="brand-mark"><Sparkles size={18} /></span><span>findit<span className="brand-ai">.ai</span></span></a>
-        <span>Made for campus communities. Powered by a little AI.</span>
-        <span className="footer-status"><span className="live-dot" /> API connected when available</span>
+      <footer className="site-footer">
+        <div className="footer-main">
+          <div className="footer-brand-column">
+            <a className="brand" href="/"><span className="brand-mark"><Sparkles size={18} /></span><span>findit<span className="brand-ai">.ai</span></span></a>
+            <p>Helping campus communities bring lost belongings back to the people who matter.</p>
+            <span className="footer-status"><span className="live-dot" /> FindIt AI community platform</span>
+          </div>
+          <div className="footer-column"><strong>For individuals</strong><a href="#community-board">Search items</a><button onClick={() => openReport("lost")}>Report a lost item</button><button onClick={() => openReport("found")}>Report a found item</button><a href="#how-it-works">How it works</a></div>
+          <div className="footer-column"><strong>For organizations</strong><a href="#organizations">Campus solutions</a><a href="#organizations">Events & venues</a><a href="#organizations">Community partnerships</a></div>
+          <div className="footer-column"><strong>FindIt AI</strong><a href="#discover">About the platform</a><a href="#faq-title">Help & FAQs</a><a href="#discover">Privacy-first design</a></div>
+        </div>
+        <div className="footer-bottom"><span>© {new Date().getFullYear()} FindIt AI. All rights reserved.</span><span>Designed for safer, simpler reunions.</span></div>
       </footer>
 
       {showAuth && (
