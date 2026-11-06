@@ -14,4 +14,5 @@ frontend/dist
 .DS_Store
 .vscode
 .idea
-\n.venv-jenkins\n
+
+.venv-jenkins
