@@ -13,6 +13,8 @@ import {
   FileImage,
   Filter,
   Globe2,
+  GraduationCap,
+  Bus,
   CircleHelp,
   Laptop,
   LogOut,
