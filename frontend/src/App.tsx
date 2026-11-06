@@ -357,6 +357,7 @@ export default function App() {
 
       <main>
         <section className="hero" id="discover">
+          <img key={heroImageIndex} className="hero-photo" src={heroImages[heroImageIndex]} alt="" aria-hidden="true" />
           <div className="hero-copy">
             <div className="eyebrow"><Sparkles size={14} /> SMART CAMPUS LOST & FOUND</div>
             <h1>Lost something?<br /><span>Let’s bring it back.</span></h1>
