@@ -804,3 +804,16 @@ button:focus-visible, a:focus-visible, select:focus-visible {
   .found-report-cta { align-items:stretch; flex-direction:column; padding:20px; }
   .found-report-cta .button { justify-content:center; width:100%; }
 }
+
+
+/* Smooth rotating photographic hero carousel */
+.hero {
+  background-position:center 38%;
+  background-size:cover;
+  transition:background-image 1s ease-in-out;
+}
+.hero::after {
+  content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
+  background:linear-gradient(90deg,#0d2638aa 0%,#0d263855 55%,#0d263833 100%);
+}
+.hero-country select,.results-country select { font-variant-emoji:emoji; }
