@@ -590,3 +590,76 @@ button { cursor: pointer; }
   .community-promo { padding: 42px 20px; }
   .how-section { padding: 48px 18px; }
 }
+
+
+/* FindIt AI: reference-led sticky navigation and search controls */
+.topbar {
+  position: fixed !important;
+  inset: 0 0 auto;
+  z-index: 100;
+  height: 66px;
+  transform: translateY(-110%);
+  opacity: 0;
+  visibility: hidden;
+  transition: transform .28s ease, opacity .2s ease, visibility .28s;
+  box-shadow: 0 3px 16px #10182024;
+}
+.topbar.is-visible {
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+}
+.topbar .brand { display:flex; align-items:center; gap:10px; color:#fff; font-size:25px; font-weight:800; letter-spacing:-1px; }
+.topbar .brand-mark {
+  width:35px; height:35px; display:grid; place-items:center;
+  color:#ed0808; background:#fff; border-radius:50% 50% 50% 12%;
+  transform:rotate(-45deg);
+}
+.topbar .brand-mark svg { transform:rotate(45deg); }
+.topbar .brand-word { color:#fff; font:800 24px 'Manrope',sans-serif; letter-spacing:-1px; }
+.topbar .brand-ai { color:#ffe3e3; }
+.topbar .top-nav { gap:26px; }
+.topbar .top-nav a { color:#fff; font-size:13px; }
+.topbar .top-nav a:hover { color:#ffe0e0; }
+.topbar .top-nav .nav-active { border-color:#ffffff88; }
+.topbar-right { gap:15px; }
+.country-nav,.help-nav {
+  display:inline-flex; align-items:center; gap:7px; padding:8px 4px;
+  border:0; color:#fff; background:transparent; font:600 13px 'Manrope',sans-serif; cursor:pointer;
+}
+.country-nav:hover,.help-nav:hover { color:#ffe3e3; }
+.hero-search {
+  overflow:hidden; gap:0; padding:0 8px 0 0; border-radius:9px;
+  box-shadow:0 12px 36px #08172530;
+}
+.hero-country {
+  height:100%; min-width:190px; display:flex; align-items:center; gap:9px;
+  padding:0 15px; border-right:1px solid #e1e6ea; color:#34424c; background:#fff;
+}
+.hero-country select {
+  min-width:0; width:100%; appearance:none; border:0; outline:0;
+  color:#34424c; background:transparent; font:700 13px 'Manrope',sans-serif; cursor:pointer;
+}
+.hero-query { min-width:0; flex:1; display:flex; align-items:center; gap:11px; padding:0 16px; color:#7b8790; }
+.hero-query input { width:100%; min-width:0; border:0; outline:0; color:#263744; background:transparent; font-size:14px; }
+.hero-search .hero-search-submit {
+  width:58px; height:48px; flex:0 0 58px; display:grid; place-items:center;
+  border:0; border-radius:7px; color:#fff; background:#ed0808; cursor:pointer;
+}
+.hero-search .hero-search-submit:hover { background:#c90000; }
+@media (max-width:760px) {
+  .topbar { height:62px; padding:0 15px; }
+  .topbar .brand-word { font-size:20px; }
+  .topbar .top-nav { display:none; }
+  .topbar-right { gap:8px; }
+  .country-nav { font-size:11px; }
+  .help-nav { font-size:0; gap:0; }
+  .help-nav svg { width:20px; height:20px; }
+  .topbar .button-small { padding:8px 10px; font-size:10px; }
+  .hero-search { height:auto; min-height:58px; flex-wrap:wrap; padding:7px; gap:0; }
+  .hero-country { min-width:0; width:42%; height:44px; padding:0 8px; gap:5px; border-right:1px solid #e1e6ea; }
+  .hero-country select { font-size:10px; }
+  .hero-query { width:58%; flex:1; padding:0 9px; }
+  .hero-query input { font-size:11px; }
+  .hero-search .hero-search-submit { width:100%; height:42px; flex-basis:100%; margin-top:6px; }
+}
