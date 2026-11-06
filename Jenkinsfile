@@ -21,7 +21,7 @@ pipeline {
                     python3 -m venv .venv-jenkins
                     . .venv-jenkins/bin/activate
                     python -m pip install --upgrade pip
-                    python -m pip install fastapi pillow httpx pytest python-multipart sqlalchemy "psycopg[binary]" pgvector
+                    python -m pip install fastapi pillow httpx pytest python-multipart sqlalchemy "psycopg[binary]" pgvector email-validator "pwdlib[argon2]" PyJWT
                     python -m pytest -q tests/
                 '''
             }
