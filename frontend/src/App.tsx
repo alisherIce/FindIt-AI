@@ -12,6 +12,8 @@ import {
   Compass,
   FileImage,
   Filter,
+  Globe2,
+  CircleHelp,
   Laptop,
   LogOut,
   MapPin,
@@ -99,6 +101,8 @@ export default function App() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loadingMatches, setLoadingMatches] = useState(false);
   const [notice, setNotice] = useState("");
+  const [showStickyNav, setShowStickyNav] = useState(false);
+  const [country, setCountry] = useState("South Korea");
 
   const [form, setForm] = useState({
     title: "",
@@ -125,6 +129,13 @@ export default function App() {
 
   useEffect(() => {
     void loadItems();
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => setShowStickyNav(window.scrollY > 360);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   useEffect(() => {
@@ -309,18 +320,19 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <header className="topbar">
+      <header className={`topbar ${showStickyNav ? "is-visible" : ""}`}>
         <a className="brand" href="/" aria-label="FindIt AI home">
-          <span className="brand-mark"><Sparkles size={20} /></span>
-          <span>findit<span className="brand-ai">.ai</span></span>
+          <span className="brand-mark"><MapPin size={22} fill="currentColor" strokeWidth={2.5} /></span>
+          <span className="brand-word">FindIt <span className="brand-ai">AI</span></span>
         </a>
         <nav className="top-nav" aria-label="Main navigation">
-          <a className="nav-active" href="#discover">Find an item</a>
+          <a className="nav-active" href="#discover">Search items</a>
           <a href="#how-it-works">How it works</a>
           <a href="#organizations">For organizations</a>
         </nav>
         <div className="topbar-right">
-          <span className="campus-chip"><span className="live-dot" /> Campus community</span>
+          <button className="country-nav" type="button" onClick={() => document.getElementById("country-select")?.focus()}><Globe2 size={17} /> Countries <ChevronDown size={14} /></button>
+          <button className="help-nav" type="button" onClick={() => document.getElementById("help-section")?.scrollIntoView({ behavior: "smooth" })}><CircleHelp size={18} /> Help</button>
           {currentUser ? (
             <div className="account-actions">
               <span className="account-email">{currentUser.email}</span>
@@ -343,17 +355,18 @@ export default function App() {
             <p className="hero-description">
               Search thousands of lost-and-found reports or let our visual AI help reconnect you with what matters.
             </p>
-            <label className="hero-search">
-              <Search size={19} />
+            <div className="hero-search">
+              <label className="hero-country"><Globe2 size={18} /><select id="country-select" value={country} onChange={(event) => setCountry(event.target.value)} aria-label="Choose country"><option>South Korea</option><option>United States</option><option>United Kingdom</option><option>Uzbekistan</option><option>Japan</option><option>All countries</option></select><ChevronDown size={14} /></label>
+              <label className="hero-query"><Search size={19} />
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 onKeyDown={(event) => { if (event.key === "Enter") document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" }); }}
                 placeholder="What have you lost? Try wallet, keys, phone..."
                 aria-label="Search lost and found items"
-              />
-              <button type="button" onClick={() => document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" })}>Search</button>
-            </label>
+              /></label>
+              <button className="hero-search-submit" type="button" aria-label="Search" onClick={() => document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" })}><Search size={21} /></button>
+            </div>
             <div className="hero-actions">
               <button className="button button-primary" onClick={() => openReport("lost")}>
                 I lost something <ArrowUpRight size={17} />
