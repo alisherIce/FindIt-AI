@@ -61,3 +61,12 @@ def test_reject_oversized_upload(monkeypatch):
         files={"file": ("item.png", make_png(), "image/png")},
     )
     assert response.status_code == 413
+
+
+def test_reject_excessive_image_dimensions(monkeypatch):
+    monkeypatch.setattr(main, "MAX_IMAGE_PIXELS", 50)
+    response = client.post(
+        "/api/upload",
+        files={"file": ("item.png", make_png(), "image/png")},
+    )
+    assert response.status_code == 413
