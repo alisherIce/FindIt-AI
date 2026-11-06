@@ -30,17 +30,21 @@ uvicorn backend.main:app --reload
 
 Open <http://127.0.0.1:8000/docs> for interactive API documentation.
 
+## Authentication
+
+The API supports account registration, OAuth2 password login, and bearer-token authentication. Creating reports requires a valid access token; only the report owner can mark their report as resolved. Access tokens expire after 60 minutes. Set a strong, unique `JWT_SECRET_KEY` in any shared environment.
+
 ## Endpoints
 
 | Method | Endpoint | Purpose |
 | --- | --- | --- |
 | GET | `/` | Service welcome message |
 | GET | `/api/health` | Health check (does not require a database query) |
-| POST | `/api/upload` | Validate and save a standalone image |
-| POST | `/api/items` | Create a lost/found report and save its CLIP embedding |
+| POST | `/api/auth/register` | Register a user account |\n| POST | `/api/auth/login` | Sign in and receive a bearer token |\n| GET | `/api/auth/me` | Read the authenticated account |\n| POST | `/api/upload` | Validate and save a standalone image |
+| POST | `/api/items` | Create an authenticated lost/found report and save its CLIP embedding |
 | GET | `/api/items` | List active reports; optional `item_type=lost` or `found` |
 | GET | `/api/items/{id}/matches` | Find nearest active reports of the opposite type |
-| PATCH | `/api/items/{id}/resolve` | Mark a report as resolved |
+| PATCH | `/api/items/{id}/resolve` | Mark your own report as resolved |
 
 The item creation form requires `item_type` (`lost` or `found`), `title`, `category`, `campus`, `location`, and an image file. Description is optional. The first item submission loads the pretrained CLIP model and may take longer while model weights are downloaded.
 
