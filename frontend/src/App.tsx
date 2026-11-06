@@ -12,6 +12,7 @@ import {
   FileImage,
   Filter,
   Laptop,
+  LogOut,
   MapPin,
   Package,
   Plus,
@@ -36,10 +37,12 @@ type Item = {
   description: string;
   image_filename: string;
   status: string;
+  owner_id: string | null;
   created_at: string;
 };
 
 type Match = Item & { visual_similarity: number };
+type CurrentUser = { id: string; email: string };
 
 const categoryIcons: Record<string, typeof Package> = {
   electronics: Laptop,
@@ -71,6 +74,15 @@ async function readError(response: Response) {
 
 export default function App() {
   const [items, setItems] = useState<Item[]>([]);
+  const [token, setToken] = useState(() => localStorage.getItem("findit_access_token") ?? "");
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [showAuth, setShowAuth] = useState(false);
+  const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
+  const [authError, setAuthError] = useState("");
+  const [authBusy, setAuthBusy] = useState(false);
+  const [pendingReportType, setPendingReportType] = useState<ItemType | null>(null);
   const [filter, setFilter] = useState<"all" | ItemType>("all");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -113,6 +125,23 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (!token) {
+      setCurrentUser(null);
+      return;
+    }
+    fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Session expired");
+        setCurrentUser(await response.json());
+      })
+      .catch(() => {
+        localStorage.removeItem("findit_access_token");
+        setToken("");
+        setCurrentUser(null);
+      });
+  }, [token]);
+
+  useEffect(() => {
     if (!selectedFile) {
       setPreviewUrl("");
       return;
@@ -141,7 +170,7 @@ export default function App() {
     setForm((current) => ({ ...current, [field]: value }));
   }
 
-  function openReport(type: ItemType) {
+  function startReport(type: ItemType) {
     setReportType(type);
     setForm({
       title: "",
@@ -152,6 +181,66 @@ export default function App() {
     });
     setSelectedFile(null);
     setShowReport(true);
+  }
+
+  function openReport(type: ItemType) {
+    if (!token) {
+      setPendingReportType(type);
+      setAuthError("");
+      setShowAuth(true);
+      return;
+    }
+    startReport(type);
+  }
+
+  async function submitAuth(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setAuthBusy(true);
+    setAuthError("");
+    try {
+      if (authMode === "register") {
+        const registration = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: authEmail, password: authPassword }),
+        });
+        if (!registration.ok) throw new Error(await readError(registration));
+      }
+
+      const login = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ username: authEmail, password: authPassword }),
+      });
+      if (!login.ok) throw new Error(await readError(login));
+
+      const data = await login.json();
+      localStorage.setItem("findit_access_token", data.access_token);
+      setToken(data.access_token);
+      const profile = await fetch("/api/auth/me", {
+        headers: { Authorization: `Bearer ${data.access_token}` },
+      });
+      if (!profile.ok) throw new Error("Could not load your account.");
+      setCurrentUser(await profile.json());
+      setShowAuth(false);
+      setAuthPassword("");
+      setNotice(authMode === "register" ? "Your account is ready." : "Welcome back.");
+      if (pendingReportType) {
+        startReport(pendingReportType);
+        setPendingReportType(null);
+      }
+    } catch (err) {
+      setAuthError(err instanceof Error ? err.message : "Authentication failed.");
+    } finally {
+      setAuthBusy(false);
+    }
+  }
+
+  function signOut() {
+    localStorage.removeItem("findit_access_token");
+    setToken("");
+    setCurrentUser(null);
+    setNotice("You have signed out.");
   }
 
   async function submitReport(event: FormEvent<HTMLFormElement>) {
@@ -173,7 +262,7 @@ export default function App() {
     payload.append("file", selectedFile);
 
     try {
-      const response = await fetch("/api/items", { method: "POST", body: payload });
+      const response = await fetch("/api/items", { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: payload });
       if (!response.ok) throw new Error(await readError(response));
       setShowReport(false);
       setNotice(reportType === "lost" ? "Your lost-item report is live." : "Your found-item report is live.");
@@ -204,7 +293,7 @@ export default function App() {
 
   async function resolveItem(item: Item) {
     try {
-      const response = await fetch(`/api/items/${item.id}/resolve`, { method: "PATCH" });
+      const response = await fetch(`/api/items/${item.id}/resolve`, { method: "PATCH", headers: { Authorization: `Bearer ${token}` } });
       if (!response.ok) throw new Error(await readError(response));
       setNotice("Report marked as resolved.");
       await loadItems();
@@ -226,6 +315,14 @@ export default function App() {
         </nav>
         <div className="topbar-right">
           <span className="campus-chip"><span className="live-dot" /> Campus community</span>
+          {currentUser ? (
+            <div className="account-actions">
+              <span className="account-email">{currentUser.email}</span>
+              <button className="icon-button signout-button" onClick={signOut} aria-label="Sign out" title="Sign out"><LogOut size={16} /></button>
+            </div>
+          ) : (
+            <button className="button button-outline button-small" onClick={() => { setAuthError(""); setShowAuth(true); }}>Sign in</button>
+          )}
           <button className="button button-dark button-small" onClick={() => openReport("lost")}>
             <Plus size={16} /> Report an item
           </button>
@@ -336,7 +433,7 @@ export default function App() {
                         <span className="category-tag"><Tag size={12} /> {item.category}</span>
                         <button className="match-link" onClick={() => void showMatches(item)}>Find matches <ArrowRight size={15} /></button>
                       </div>
-                      <button className="resolve-link" onClick={() => void resolveItem(item)}>Mark resolved</button>
+                      {currentUser?.id === item.owner_id && <button className="resolve-link" onClick={() => void resolveItem(item)}>Mark resolved</button>}
                     </div>
                   </article>
                 );
@@ -361,6 +458,24 @@ export default function App() {
         <span>Made for campus communities. Powered by a little AI.</span>
         <span className="footer-status"><span className="live-dot" /> API connected when available</span>
       </footer>
+
+      {showAuth && (
+        <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowAuth(false); }}>
+          <section className="modal auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+            <div className="modal-header">
+              <div><div className="eyebrow"><ShieldCheck size={13} /> YOUR CAMPUS ACCOUNT</div><h2 id="auth-title">{authMode === "login" ? "Welcome back" : "Create your account"}</h2><p>{authMode === "login" ? "Sign in to post reports and manage your items." : "Join your campus community on FindIt AI."}</p></div>
+              <button className="icon-button" onClick={() => setShowAuth(false)} aria-label="Close sign in"><X size={20} /></button>
+            </div>
+            {authError && <div className="alert alert-error" role="alert">{authError}</div>}
+            <form className="report-form auth-form" onSubmit={submitAuth}>
+              <label className="field-label">University email<input type="email" required autoComplete="email" value={authEmail} onChange={(event) => setAuthEmail(event.target.value)} placeholder="you@university.edu" /></label>
+              <label className="field-label">Password<input type="password" required minLength={8} maxLength={128} autoComplete={authMode === "login" ? "current-password" : "new-password"} value={authPassword} onChange={(event) => setAuthPassword(event.target.value)} placeholder="At least 8 characters" /></label>
+              <button className="button button-primary submit-button" type="submit" disabled={authBusy}>{authBusy ? "Please wait..." : authMode === "login" ? "Sign in" : "Create account"} <ArrowRight size={17} /></button>
+            </form>
+            <p className="auth-switch">{authMode === "login" ? "New to FindIt AI?" : "Already have an account?"} <button onClick={() => { setAuthMode(authMode === "login" ? "register" : "login"); setAuthError(""); }}>{authMode === "login" ? "Create an account" : "Sign in"}</button></p>
+          </section>
+        </div>
+      )}
 
       {showReport && (
         <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowReport(false); }}>
