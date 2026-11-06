@@ -234,3 +234,12 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
   .modal { max-height: 92vh; padding: 21px 17px; border-radius: 17px 17px 12px 12px; }
   .form-row { grid-template-columns: 1fr; }
 }
+
+
+.account-actions { display: flex; align-items: center; gap: 8px; }
+.account-email { max-width: 145px; overflow: hidden; color: #77788c; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.signout-button { width: 32px; height: 32px; border-radius: 8px; }
+.auth-modal { width: min(100%, 440px); }
+.auth-form { margin-top: 23px; }
+.auth-switch { margin: 18px 0 0; color: #9697a7; font-size: 10px; text-align: center; }
+.auth-switch button { padding: 0; border: 0; color: #6c5cda; background: transparent; font-size: inherit; font-weight: 800; }
