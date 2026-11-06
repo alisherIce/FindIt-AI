@@ -663,3 +663,44 @@ button { cursor: pointer; }
   .hero-query input { font-size:11px; }
   .hero-search .hero-search-submit { width:100%; height:42px; flex-basis:100%; margin-top:6px; }
 }
+
+
+/* Results-only search controls, revealed after the hero search is submitted */
+.results-searchbar {
+  width:min(100%, 950px); margin:0 auto 24px; padding:12px;
+  display:grid; grid-template-columns:190px minmax(180px,1fr) 165px 48px;
+  align-items:center; gap:9px; background:#fff; border:1px solid #dce3e9;
+  border-radius:12px; box-shadow:0 3px 12px #10283b0d;
+}
+.results-country,.results-location,.results-date {
+  min-width:0; height:43px; display:flex; align-items:center; gap:9px;
+  padding:0 12px; border:1px solid #b9c5ce; border-radius:6px;
+  color:#66737d; background:#fff;
+}
+.results-country select {
+  min-width:0; width:100%; appearance:none; border:0; outline:0;
+  color:#34424c; background:transparent; font:600 12px 'Manrope',sans-serif;
+}
+.results-location input {
+  width:100%; min-width:0; border:0; outline:0; color:#34424c;
+  background:transparent; font:12px 'Manrope',sans-serif;
+}
+.results-date { position:relative; overflow:hidden; }
+.results-date .date-label { white-space:nowrap; font:12px 'Manrope',sans-serif; }
+.results-date input {
+  position:absolute; inset:0; width:100%; height:100%; opacity:0;
+  cursor:pointer; color-scheme:light;
+}
+.results-date:focus-within { outline:2px solid #1672b9; outline-offset:2px; }
+.results-search-button {
+  height:43px; display:grid; place-items:center; border:0; border-radius:6px;
+  color:#fff; background:#1475bd; cursor:pointer;
+}
+.results-search-button:hover { background:#075d9c; }
+@media(max-width:760px) {
+  .results-searchbar { grid-template-columns:1fr 1fr 44px; gap:7px; padding:9px; }
+  .results-country { grid-column:span 1; }
+  .results-location { grid-column:span 2; }
+  .results-date { grid-column:span 2; }
+  .results-search-button { grid-column:3; grid-row:2; }
+}
