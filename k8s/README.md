@@ -24,6 +24,7 @@ kubectl create secret generic findit-secrets \
   --namespace findit \
   --from-literal=postgres-user=findit \
   --from-literal=postgres-password="$DB_PASSWORD" \
+  --from-literal=jwt-secret="$(openssl rand -hex 32)" \
   --from-literal=database-url="postgresql+psycopg://findit:${DB_PASSWORD}@findit-db:5432/findit" \
   --dry-run=client -o yaml | kubectl apply -f -
 ```
