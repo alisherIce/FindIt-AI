@@ -20,13 +20,22 @@ SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 @lru_cache(maxsize=1)
 def initialize_database():
-    """Enable pgvector and create the MVP tables once per process."""
-    # Import models so their tables are registered on Base.metadata.
+    """Enable pgvector, create tables, and apply the small MVP schema update."""
     from backend import models  # noqa: F401
 
     with engine.begin() as connection:
         connection.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
         Base.metadata.create_all(bind=connection)
+        # create_all does not alter existing tables; keep upgrades idempotent for existing MVP DBs.
+        connection.execute(
+            text(
+                "ALTER TABLE items ADD COLUMN IF NOT EXISTS "
+                "owner_id VARCHAR(36) REFERENCES users(id) ON DELETE SET NULL"
+            )
+        )
+        connection.execute(
+            text("CREATE INDEX IF NOT EXISTS ix_items_owner_id ON items(owner_id)")
+        )
 
 
 def get_db():
