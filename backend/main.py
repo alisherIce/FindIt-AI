@@ -123,6 +123,15 @@ def health_check():
     return {"status": "healthy", "service": "FindIt AI"}
 
 
+@app.get("/api/health/ready")
+def readiness_check(db: Session = Depends(get_db)):
+    """Report ready only when PostgreSQL and pgvector can be reached."""
+    from sqlalchemy import text
+
+    db.execute(text("SELECT 1"))
+    return {"status": "ready", "database": "connected"}
+
+
 @app.post("/api/upload", status_code=201)
 async def upload_image(file: UploadFile = File(...)):
     """Validate and privately save one standalone item photo."""

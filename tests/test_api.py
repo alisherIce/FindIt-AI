@@ -225,3 +225,9 @@ def test_resolve_item_removes_it_from_active_listing(clean_database, tmp_path, m
     listing = client.get("/api/items")
     assert listing.status_code == 200
     assert listing.json()["count"] == 0
+
+
+def test_readiness_check(clean_database):
+    response = client.get("/api/health/ready")
+    assert response.status_code == 200
+    assert response.json() == {"status": "ready", "database": "connected"}

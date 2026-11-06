@@ -1,0 +1,106 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: findit-uploads
+  namespace: findit
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: findit-model-cache
+  namespace: findit
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: findit-api
+  namespace: findit
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: findit-api
+  template:
+    metadata:
+      labels:
+        app: findit-api
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/alisherice/findit-ai-api:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8000
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: findit-secrets
+                  key: database-url
+            - name: HF_HOME
+              valueFrom:
+                configMapKeyRef:
+                  name: findit-config
+                  key: HF_HOME
+            - name: PYTHONUNBUFFERED
+              valueFrom:
+                configMapKeyRef:
+                  name: findit-config
+                  key: PYTHONUNBUFFERED
+          volumeMounts:
+            - name: uploads
+              mountPath: /app/uploads
+            - name: model-cache
+              mountPath: /root/.cache/huggingface
+          readinessProbe:
+            httpGet:
+              path: /api/health/ready
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: "2"
+              memory: 4Gi
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: findit-uploads
+        - name: model-cache
+          persistentVolumeClaim:
+            claimName: findit-model-cache
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+  namespace: findit
+spec:
+  selector:
+    app: findit-api
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http
+  type: ClusterIP
