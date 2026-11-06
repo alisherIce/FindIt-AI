@@ -40,7 +40,10 @@ The API supports account registration, OAuth2 password login, and bearer-token a
 | --- | --- | --- |
 | GET | `/` | Service welcome message |
 | GET | `/api/health` | Health check (does not require a database query) |
-| POST | `/api/auth/register` | Register a user account |\n| POST | `/api/auth/login` | Sign in and receive a bearer token |\n| GET | `/api/auth/me` | Read the authenticated account |\n| POST | `/api/upload` | Validate and save a standalone image |
+| POST | `/api/auth/register` | Register a user account |
+| POST | `/api/auth/login` | Sign in and receive a bearer token |
+| GET | `/api/auth/me` | Read the authenticated account |
+| POST | `/api/upload` | Validate and save a standalone image |
 | POST | `/api/items` | Create an authenticated lost/found report and save its CLIP embedding |
 | GET | `/api/items` | List active reports; optional `item_type=lost` or `found` |
 | GET | `/api/items/{id}/matches` | Find nearest active reports of the opposite type |
