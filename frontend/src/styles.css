@@ -492,7 +492,7 @@ button { cursor: pointer; }
 .hero {
   position: relative; isolation: isolate; min-height: 570px; max-width: none;
   padding: 78px 24px 55px; overflow: hidden; color: #fff;
-  background: linear-gradient(90deg, #182b3c99, #172b3c55), url("https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=2200&q=85") center 38%/cover no-repeat;
+  background: #183448;
 }
 .hero::before { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg,#0d1d2a38,#0d1d2a42); }
 .hero-copy { max-width: 850px; }
@@ -817,3 +817,16 @@ button:focus-visible, a:focus-visible, select:focus-visible {
   background:linear-gradient(90deg,#0d2638aa 0%,#0d263855 55%,#0d263833 100%);
 }
 .hero-country select,.results-country select { font-variant-emoji:emoji; }
+
+
+/* Actual photographic hero carousel: each frame is a real Unsplash photograph */
+.hero { isolation:isolate; }
+.hero-photo {
+  position:absolute; inset:0; z-index:-2; width:100%; height:100%;
+  object-fit:cover; object-position:center 38%;
+  animation:hero-photo-appear 900ms ease both;
+}
+@keyframes hero-photo-appear {
+  from { opacity:.25; transform:scale(1.025); }
+  to { opacity:1; transform:scale(1); }
+}
