@@ -103,6 +103,8 @@ export default function App() {
   const [notice, setNotice] = useState("");
   const [showStickyNav, setShowStickyNav] = useState(false);
   const [country, setCountry] = useState("South Korea");
+  const [showResultsFilters, setShowResultsFilters] = useState(false);
+  const [pickedDate, setPickedDate] = useState("");
 
   const [form, setForm] = useState({
     title: "",
@@ -169,13 +171,14 @@ export default function App() {
     const term = search.trim().toLowerCase();
     return items.filter((item) => {
       const typeMatches = filter === "all" || item.item_type === filter;
+      const dateMatches = !pickedDate || new Date(item.created_at).toISOString().slice(0, 10) === pickedDate;
       const textMatches =
         !term ||
         [item.title, item.category, item.campus, item.location, item.description]
           .some((value) => value.toLowerCase().includes(term));
-      return typeMatches && textMatches;
+      return typeMatches && textMatches && dateMatches;
     });
-  }, [items, filter, search]);
+  }, [items, filter, search, pickedDate]);
 
   const lostCount = items.filter((item) => item.item_type === "lost").length;
   const foundCount = items.filter((item) => item.item_type === "found").length;
@@ -361,11 +364,11 @@ export default function App() {
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                onKeyDown={(event) => { if (event.key === "Enter") document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" }); }}
+                onKeyDown={(event) => { if (event.key === "Enter") { setShowResultsFilters(true); document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" }); } }}
                 placeholder="What have you lost? Try wallet, keys, phone..."
                 aria-label="Search lost and found items"
               /></label>
-              <button className="hero-search-submit" type="button" aria-label="Search" onClick={() => document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" })}><Search size={21} /></button>
+              <button className="hero-search-submit" type="button" aria-label="Search" onClick={() => { setShowResultsFilters(true); document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" }); }}><Search size={21} /></button>
             </div>
             <div className="hero-actions">
               <button className="button button-primary" onClick={() => openReport("lost")}>
@@ -428,6 +431,16 @@ export default function App() {
         </section>
 
         <section className="list-section" id="community-board">
+          {showResultsFilters && (
+            <div className="results-searchbar" aria-label="Search result filters">
+              <label className="results-country"><Globe2 size={17} /><select value={country} onChange={(event) => setCountry(event.target.value)} aria-label="Filter by country">
+                <option>South Korea</option><option>United States</option><option>United Kingdom</option><option>Uzbekistan</option><option>Japan</option><option>All countries</option>
+              </select><ChevronDown size={14} /></label>
+              <label className="results-location"><Search size={17} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Key in Seoul" aria-label="Search by item or location" /></label>
+              <label className="results-date"><Clock3 size={16} /><span className="date-label">Pick date</span><input type="date" value={pickedDate} onChange={(event) => setPickedDate(event.target.value)} aria-label="Filter items by date" /></label>
+              <button className="results-search-button" type="button" onClick={() => document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" })} aria-label="Apply search"><Search size={19} /></button>
+            </div>
+          )}
           <div className="section-heading">
             <div>
               <div className="eyebrow">THE COMMUNITY BOARD</div>
