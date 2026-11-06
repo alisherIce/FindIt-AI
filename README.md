@@ -79,7 +79,10 @@ Open <http://localhost:5173>. Vite proxies API requests to the local FastAPI ser
 | --- | --- | --- |
 | GET | `/api/health` | Backend health check |
 | POST | `/api/upload` | Validate and save a standalone image |
-| POST | `/api/auth/register` | Register an account |\n| POST | `/api/auth/login` | Sign in and receive a bearer token |\n| GET | `/api/auth/me` | Get the signed-in account |\n| POST | `/api/items` | Create an authenticated lost/found report and generate its embedding |
+| POST | `/api/auth/register` | Register an account |
+| POST | `/api/auth/login` | Sign in and receive a bearer token |
+| GET | `/api/auth/me` | Get the signed-in account |
+| POST | `/api/items` | Create an authenticated lost/found report and generate its embedding |
 | GET | `/api/items` | List active reports |
 | GET | `/api/items/{id}/matches` | Rank possible opposite-type matches |
 | PATCH | `/api/items/{id}/resolve` | Mark your own report as resolved |
