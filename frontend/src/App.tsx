@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
-  ArrowDownRight,
   ArrowRight,
   ArrowUpRight,
   BadgeCheck,
