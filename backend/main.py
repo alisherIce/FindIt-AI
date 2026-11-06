@@ -38,6 +38,13 @@ def health_check():
 async def upload_image(file: UploadFile = File(...)):
     """Validate and privately save one lost/found item photo."""
 
+    allowed_mime_types = {mime for mime, _extension in ALLOWED_FORMATS.values()}
+    if file.content_type not in allowed_mime_types:
+        raise HTTPException(
+            status_code=415,
+            detail="Only JPEG, PNG, and WEBP images are supported.",
+        )
+
     contents = await file.read(MAX_FILE_SIZE + 1)
     if not contents:
         raise HTTPException(status_code=400, detail="The uploaded file is empty.")
