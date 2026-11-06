@@ -37,7 +37,7 @@ jobs:
           cache-dependency-path: requirements.txt
 
       - name: Install backend and test dependencies
-        run: python -m pip install --upgrade fastapi pillow httpx pytest python-multipart sqlalchemy "psycopg[binary]" pgvector email-validator "pwdlib[argon2]" PyJWT
+        run: python -m pip install --upgrade fastapi pillow httpx pytest python-multipart sqlalchemy "psycopg[binary]" pgvector email-validator "pwdlib[argon2]" PyJWT email-validator "pwdlib[argon2]" PyJWT
 
       - name: Run backend tests
         run: python -m pytest -q tests/
