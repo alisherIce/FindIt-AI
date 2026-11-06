@@ -489,7 +489,7 @@ export default function App() {
               <span className="empty-icon"><Compass size={26} /></span>
               <strong>{items.length === 0 ? "Your campus board is ready." : "No reports found."}</strong>
               <p>{items.length === 0 ? "Be the first to post a lost or found item." : "Try another search or filter."}</p>
-              {items.length === 0 && <button className="button button-primary" onClick={() => openReport("found")}><Plus size={16} /> Post the first report</button>}
+              
             </div>
           ) : (
             <div className="item-grid">
@@ -518,6 +518,16 @@ export default function App() {
               })}
             </div>
           )}
+          <div className="found-report-cta">
+            <div>
+              <span className="eyebrow">HELP SOMEONE GET IT BACK</span>
+              <h3>Found something that belongs to someone else?</h3>
+              <p>Register the item so its owner can search for it and identify it.</p>
+            </div>
+            <button className="button button-primary" type="button" onClick={() => openReport("found")}>
+              <Plus size={17} /> I found something — Report it <ArrowRight size={17} />
+            </button>
+          </div>
         </section>
 
         <section className="community-promo">
