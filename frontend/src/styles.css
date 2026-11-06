@@ -772,3 +772,35 @@ button { cursor: pointer; }
 @media(prefers-reduced-motion:reduce) {
   .partners-track { animation:none; }
 }
+
+
+/* Search-first journey and final found-item action */
+.hero-search-prompt {
+  display:flex; align-items:center; justify-content:center; gap:16px;
+  margin-top:16px;
+}
+.hero-search-prompt > span {
+  display:inline-flex; align-items:center; gap:7px;
+  color:#fff; font-size:13px; font-weight:600;
+}
+.hero-search-prompt .button { min-height:46px; }
+.found-report-cta {
+  margin:34px 0 4px; padding:25px 28px;
+  display:flex; align-items:center; justify-content:space-between; gap:22px;
+  border:1px solid #e1e7ec; border-radius:14px; background:#f8fafb;
+}
+.found-report-cta h3 {
+  margin:6px 0 5px; color:#243442; font:800 20px 'Manrope',sans-serif;
+  letter-spacing:-.45px;
+}
+.found-report-cta p { margin:0; color:#71808b; font-size:13px; }
+.found-report-cta .button { flex:0 0 auto; min-height:46px; }
+button, a, select, input[type="date"] { cursor:pointer; }
+button:focus-visible, a:focus-visible, select:focus-visible {
+  outline:3px solid #66b7ff; outline-offset:3px;
+}
+@media(max-width:700px) {
+  .hero-search-prompt { flex-direction:column; gap:10px; }
+  .found-report-cta { align-items:stretch; flex-direction:column; padding:20px; }
+  .found-report-cta .button { justify-content:center; width:100%; }
+}
