@@ -192,6 +192,38 @@ async def create_item(
     }
 
 
+@app.get("/api/matches/{filename}")
+def find_uploaded_image_matches(
+    filename: str,
+    limit: int = Query(default=5, ge=1, le=10),
+):
+    """Legacy local-folder search; item reports should use the database match route."""
+    if Path(filename).name != filename:
+        raise HTTPException(status_code=400, detail="Invalid image filename.")
+
+    query_path = UPLOAD_DIR / filename
+    if not query_path.is_file():
+        raise HTTPException(status_code=404, detail="Uploaded image was not found.")
+
+    try:
+        from ml.image_matcher import find_similar_images
+
+        matches = find_similar_images(query_path, UPLOAD_DIR, top_k=limit)
+    except Exception:
+        logger.exception("FindIt AI local image matching failed")
+        raise HTTPException(
+            status_code=503,
+            detail="AI matching is unavailable. Check the ML dependencies and model setup.",
+        )
+
+    return {
+        "query_filename": filename,
+        "match_count": len(matches),
+        "matches": matches,
+        "note": "Visual similarity is a suggestion, not proof of ownership.",
+    }
+
+
 @app.get("/api/items")
 def list_items(
     item_type: str | None = Query(default=None, pattern="^(lost|found)$"),
