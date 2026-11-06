@@ -45,6 +45,9 @@ pipeline {
         }
 
         stage("Push images to GHCR") {
+            when {
+                branch "main"
+            }
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: "ghcr-credentials",
