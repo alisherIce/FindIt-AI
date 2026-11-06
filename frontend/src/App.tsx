@@ -101,7 +101,6 @@ export default function App() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loadingMatches, setLoadingMatches] = useState(false);
   const [notice, setNotice] = useState("");
-  const [showStickyNav, setShowStickyNav] = useState(false);
   const [country, setCountry] = useState("South Korea");
   const [showResultsFilters, setShowResultsFilters] = useState(false);
   const [pickedDate, setPickedDate] = useState("");
@@ -131,13 +130,6 @@ export default function App() {
 
   useEffect(() => {
     void loadItems();
-  }, []);
-
-  useEffect(() => {
-    const onScroll = () => setShowStickyNav(window.scrollY > 360);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   useEffect(() => {
@@ -323,7 +315,7 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <header className={`topbar ${showStickyNav ? "is-visible" : ""}`}>
+      <header className="topbar is-visible">
         <a className="brand" href="/" aria-label="FindIt AI home">
           <span className="brand-mark"><MapPin size={22} fill="currentColor" strokeWidth={2.5} /></span>
           <span className="brand-word">FindIt <span className="brand-ai">AI</span></span>
@@ -402,13 +394,29 @@ export default function App() {
           </div>
         </section>
 
-        <section className="partner-strip" aria-label="FindIt AI community partners">
-          <span className="partner-intro">A growing community helping belongings find their way home</span>
-          <span className="partner-wordmark">GACHON</span>
-          <span className="partner-wordmark">CAMPUS LIFE</span>
-          <span className="partner-wordmark">STUDENT SERVICES</span>
-          <span className="partner-wordmark">LIBRARY</span>
-          <span className="partner-wordmark">TRANSIT</span>
+        <section className="partners-section" aria-label="FindIt AI partner organizations">
+          <h2 className="partner-intro">Trusted by our campus and community partners</h2>
+          <p className="partners-subtitle">Working together to return belongings to the people who miss them</p>
+          <div className="partners-marquee">
+            <div className="partners-track">
+              <div className="partners-group">
+                <span className="partner-logo partner-gachon"><span className="partner-symbol">G</span> GACHON UNIVERSITY</span>
+                <span className="partner-logo"><Building2 size={24}/> CAMPUS LIFE</span>
+                <span className="partner-logo"><GraduationCap size={25}/> STUDENT SERVICES</span>
+                <span className="partner-logo"><BookOpen size={24}/> UNIVERSITY LIBRARY</span>
+                <span className="partner-logo"><Bus size={25}/> CAMPUS TRANSIT</span>
+                <span className="partner-logo"><ShieldCheck size={24}/> CAMPUS SECURITY</span>
+              </div>
+              <div className="partners-group" aria-hidden="true">
+                <span className="partner-logo partner-gachon"><span className="partner-symbol">G</span> GACHON UNIVERSITY</span>
+                <span className="partner-logo"><Building2 size={24}/> CAMPUS LIFE</span>
+                <span className="partner-logo"><GraduationCap size={25}/> STUDENT SERVICES</span>
+                <span className="partner-logo"><BookOpen size={24}/> UNIVERSITY LIBRARY</span>
+                <span className="partner-logo"><Bus size={25}/> CAMPUS TRANSIT</span>
+                <span className="partner-logo"><ShieldCheck size={24}/> CAMPUS SECURITY</span>
+              </div>
+            </div>
+          </div>
         </section>
 
         <section className="proof-band" aria-label="FindIt AI community feedback">
@@ -562,7 +570,7 @@ export default function App() {
       <footer className="site-footer">
         <div className="footer-main">
           <div className="footer-brand-column">
-            <a className="brand" href="/"><span className="brand-mark"><Sparkles size={18} /></span><span>findit<span className="brand-ai">.ai</span></span></a>
+            <a className="brand" href="/" aria-label="FindIt AI home"><span className="brand-mark"><MapPin size={20} fill="currentColor" /></span><span className="brand-word">FindIt <span className="brand-ai">AI</span></span></a>
             <p>Helping campus communities bring lost belongings back to the people who matter.</p>
             <span className="footer-status"><span className="live-dot" /> FindIt AI community platform</span>
           </div>
