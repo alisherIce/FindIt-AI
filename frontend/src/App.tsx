@@ -334,37 +334,35 @@ export default function App() {
       </header>
 
       <main>
-        <section className="hero" id="discover">
-          <div className="hero-copy">
-            <div className="eyebrow"><Sparkles size={14} /> SMART CAMPUS LOST & FOUND</div>
-            <h1>Lost something?<br /><span>Let’s bring it back.</span></h1>
-            <p className="hero-description">
-              A little help from your campus community — and AI that knows what to look for.
-            </p>
-            <div className="hero-actions">
-              <button className="button button-primary" onClick={() => openReport("lost")}>
-                I lost something <ArrowUpRight size={17} />
-              </button>
-              <button className="button button-outline" onClick={() => openReport("found")}>
-                I found something <ArrowDownRight size={17} />
-              </button>
+        <section className="hero ilost-hero" id="discover">
+          <div className="ilost-hero-inner">
+            <div className="eyebrow"><Sparkles size={14} /> FINDIT AI · CAMPUS LOST & FOUND</div>
+            <h1>We help you find<br /><span>what you’ve lost.</span></h1>
+            <p className="hero-description">Search lost and found items across your campus. Let visual AI help reconnect you with your belongings.</p>
+            <form className="ilost-search" onSubmit={(event) => { event.preventDefault(); document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" }); }}>
+              <Search size={21} />
+              <input aria-label="Search for a lost item" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="What have you lost? e.g. AirPods, wallet, keys" />
+              <span className="ilost-location"><MapPin size={15} /> Gachon University <ChevronDown size={14} /></span>
+              <button className="button button-primary" type="submit">Search items <ArrowRight size={16} /></button>
+            </form>
+            <div className="ilost-hero-actions">
+              <span>Have you found something?</span>
+              <button className="button button-outline" onClick={() => openReport("found")}><Plus size={16} /> Report a found item</button>
+              <button className="text-action" onClick={() => openReport("lost")}>Report a lost item <ArrowUpRight size={15} /></button>
             </div>
-            <div className="trust-line"><ShieldCheck size={16} /> Your item photos are processed privately.</div>
+            <div className="ilost-proof"><ShieldCheck size={16} /> Private item reports <span>·</span> AI-powered visual matching <span>·</span> Built for campus communities</div>
           </div>
-          <div className="hero-art" aria-label="Illustration of a found item being returned">
-            <div className="art-orbit orbit-one" />
-            <div className="art-orbit orbit-two" />
-            <div className="art-spark spark-a">✳</div>
-            <div className="art-spark spark-b">✦</div>
-            <div className="art-card art-card-back"><span className="mini-label">FOUND NEAR</span><strong>Library</strong><MapPin size={17} /></div>
-            <div className="art-card art-card-front">
-              <div className="art-wallet"><Wallet size={54} strokeWidth={1.25} /></div>
-              <span className="art-pill"><span /> MATCH FOUND</span>
-              <strong>One step closer.</strong>
-              <small>Good things find their way home.</small>
-            </div>
-            <div className="art-float"><BadgeCheck size={20} /><span>AI assisted<br />matching</span></div>
+          <div className="ilost-hero-visual" aria-hidden="true">
+            <div className="ilost-visual-circle circle-a" />
+            <div className="ilost-visual-circle circle-b" />
+            <div className="ilost-floating-card card-one"><span className="ilost-card-icon"><Wallet size={27} /></span><span><b>Black wallet</b><small>Found · Main Library</small></span><BadgeCheck size={18} /></div>
+            <div className="ilost-floating-card card-two"><span className="ilost-card-icon blue"><Laptop size={26} /></span><span><b>Wireless earbuds</b><small>Possible AI match</small></span><Sparkles size={17} /></div>
+            <div className="ilost-visual-center"><Search size={58} strokeWidth={1.15} /></div>
           </div>
+        </section>
+        <section className="ilost-trust-strip">
+          <span>ONE CAMPUS. ONE COMMUNITY.</span>
+          <strong>Gachon University</strong><i /> <strong>Students</strong><i /> <strong>Campus staff</strong><i /> <strong>FindIt AI matching</strong>
         </section>
 
         <section className="stats-row" aria-label="Community report statistics">
@@ -374,7 +372,7 @@ export default function App() {
           <div className="stats-note"><Sparkles size={16} /> Powered by visual AI matching</div>
         </section>
 
-        <section className="list-section">
+        <section className="list-section" id="community-board">
           <div className="section-heading">
             <div>
               <div className="eyebrow">THE COMMUNITY BOARD</div>
