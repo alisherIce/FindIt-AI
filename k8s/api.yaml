@@ -53,6 +53,11 @@ spec:
                 configMapKeyRef:
                   name: findit-config
                   key: HF_HOME
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: findit-secrets
+                  key: jwt-secret
             - name: PYTHONUNBUFFERED
               valueFrom:
                 configMapKeyRef:

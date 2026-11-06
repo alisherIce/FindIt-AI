@@ -1,5 +1,8 @@
 from io import BytesIO
+import sys
+from types import ModuleType
 
+import pytest
 from fastapi.testclient import TestClient
 from PIL import Image
 
@@ -7,6 +10,7 @@ from backend import main
 
 
 client = TestClient(main.app)
+TEST_PASSWORD = "Strong-test-password-2026"
 
 
 def make_png() -> bytes:
@@ -15,10 +19,105 @@ def make_png() -> bytes:
     return buffer.getvalue()
 
 
+def register_and_login(email: str):
+    registered = client.post(
+        "/api/auth/register",
+        json={"email": email, "password": TEST_PASSWORD},
+    )
+    assert registered.status_code == 201, registered.text
+
+    logged_in = client.post(
+        "/api/auth/login",
+        data={"username": email, "password": TEST_PASSWORD},
+    )
+    assert logged_in.status_code == 200, logged_in.text
+    token = logged_in.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}, registered.json()["user"]
+
+
+@pytest.fixture
+def clean_database():
+    from backend.database import SessionLocal, initialize_database
+    from backend.models import Item, User
+
+    initialize_database()
+    with SessionLocal() as db:
+        db.query(Item).delete()
+        db.query(User).delete()
+        db.commit()
+    yield
+    with SessionLocal() as db:
+        db.query(Item).delete()
+        db.query(User).delete()
+        db.commit()
+
+
+class FakeEmbedding:
+    def squeeze(self, _dimension=0):
+        return self
+
+    def tolist(self):
+        return [1.0 / (512 ** 0.5)] * 512
+
+
+def install_fake_matcher(monkeypatch):
+    fake_matcher = ModuleType("ml.image_matcher")
+    fake_matcher.get_image_embedding = lambda _path: FakeEmbedding()
+    fake_matcher.find_similar_images = lambda query, directory, top_k: [
+        {"filename": "similar.jpg", "similarity": 0.8123}
+    ][:top_k]
+    monkeypatch.setitem(sys.modules, "ml.image_matcher", fake_matcher)
+
+
 def test_health_check():
     response = client.get("/api/health")
     assert response.status_code == 200
     assert response.json()["status"] == "healthy"
+
+
+def test_readiness_check(clean_database):
+    response = client.get("/api/health/ready")
+    assert response.status_code == 200
+    assert response.json() == {"status": "ready", "database": "connected"}
+
+
+def test_register_login_and_get_current_user(clean_database):
+    headers, user = register_and_login("student@example.com")
+
+    response = client.get("/api/auth/me", headers=headers)
+
+    assert response.status_code == 200
+    assert response.json() == user
+
+
+def test_duplicate_email_is_rejected(clean_database):
+    client.post(
+        "/api/auth/register",
+        json={"email": "duplicate@example.com", "password": TEST_PASSWORD},
+    )
+    response = client.post(
+        "/api/auth/register",
+        json={"email": "duplicate@example.com", "password": TEST_PASSWORD},
+    )
+    assert response.status_code == 409
+
+
+def test_item_creation_requires_login(clean_database, tmp_path, monkeypatch):
+    monkeypatch.setattr(main, "UPLOAD_DIR", tmp_path)
+    install_fake_matcher(monkeypatch)
+
+    response = client.post(
+        "/api/items",
+        data={
+            "item_type": "lost",
+            "title": "Black wallet",
+            "category": "Accessories",
+            "campus": "Gachon University",
+            "location": "Central Library",
+        },
+        files={"file": ("wallet.png", make_png(), "image/png")},
+    )
+    assert response.status_code == 401
 
 
 def test_upload_valid_png(tmp_path, monkeypatch):
@@ -73,18 +172,10 @@ def test_reject_excessive_image_dimensions(monkeypatch):
 
 
 def test_find_matches_for_uploaded_image(tmp_path, monkeypatch):
-    import sys
-    from types import ModuleType
-
     query_image = tmp_path / "query.jpg"
     query_image.write_bytes(b"test image placeholder")
     monkeypatch.setattr(main, "UPLOAD_DIR", tmp_path)
-
-    fake_matcher = ModuleType("ml.image_matcher")
-    fake_matcher.find_similar_images = lambda query, directory, top_k: [
-        {"filename": "similar.jpg", "similarity": 0.8123}
-    ][:top_k]
-    monkeypatch.setitem(sys.modules, "ml.image_matcher", fake_matcher)
+    install_fake_matcher(monkeypatch)
 
     response = client.get("/api/matches/query.jpg?limit=3")
 
@@ -103,47 +194,14 @@ def test_matches_return_404_for_unknown_upload(tmp_path, monkeypatch):
     assert response.status_code == 404
 
 
-import sys
-from types import ModuleType
-
-import pytest
-
-
-@pytest.fixture
-def clean_database():
-    from backend.database import SessionLocal, initialize_database
-    from backend.models import Item
-
-    initialize_database()
-    with SessionLocal() as db:
-        db.query(Item).delete()
-        db.commit()
-    yield
-    with SessionLocal() as db:
-        db.query(Item).delete()
-        db.commit()
-
-
-class FakeEmbedding:
-    def squeeze(self, _dimension=0):
-        return self
-
-    def tolist(self):
-        return [1.0 / (512 ** 0.5)] * 512
-
-
-def install_fake_matcher(monkeypatch):
-    fake_matcher = ModuleType("ml.image_matcher")
-    fake_matcher.get_image_embedding = lambda _path: FakeEmbedding()
-    monkeypatch.setitem(sys.modules, "ml.image_matcher", fake_matcher)
-
-
 def test_create_and_list_item_report(clean_database, tmp_path, monkeypatch):
     monkeypatch.setattr(main, "UPLOAD_DIR", tmp_path)
     install_fake_matcher(monkeypatch)
+    headers, user = register_and_login("owner@example.com")
 
     response = client.post(
         "/api/items",
+        headers=headers,
         data={
             "item_type": "lost",
             "title": "Black wallet",
@@ -160,6 +218,7 @@ def test_create_and_list_item_report(clean_database, tmp_path, monkeypatch):
     assert item["item_type"] == "lost"
     assert item["title"] == "Black wallet"
     assert item["campus"] == "Gachon University"
+    assert item["owner_id"] == user["id"]
     assert item["status"] == "active"
 
     listed = client.get("/api/items?item_type=lost")
@@ -171,10 +230,12 @@ def test_create_and_list_item_report(clean_database, tmp_path, monkeypatch):
 def test_vector_matches_only_return_opposite_item_type(clean_database, tmp_path, monkeypatch):
     monkeypatch.setattr(main, "UPLOAD_DIR", tmp_path)
     install_fake_matcher(monkeypatch)
+    headers, _ = register_and_login("matcher@example.com")
 
     def create_report(item_type, title):
         return client.post(
             "/api/items",
+            headers=headers,
             data={
                 "item_type": item_type,
                 "title": title,
@@ -200,12 +261,15 @@ def test_vector_matches_only_return_opposite_item_type(clean_database, tmp_path,
     assert "not proof of ownership" in payload["note"]
 
 
-def test_resolve_item_removes_it_from_active_listing(clean_database, tmp_path, monkeypatch):
+def test_only_report_owner_can_resolve_item(clean_database, tmp_path, monkeypatch):
     monkeypatch.setattr(main, "UPLOAD_DIR", tmp_path)
     install_fake_matcher(monkeypatch)
+    owner_headers, _ = register_and_login("item-owner@example.com")
+    other_headers, _ = register_and_login("other-student@example.com")
 
     created = client.post(
         "/api/items",
+        headers=owner_headers,
         data={
             "item_type": "found",
             "title": "Blue umbrella",
@@ -218,16 +282,13 @@ def test_resolve_item_removes_it_from_active_listing(clean_database, tmp_path, m
     assert created.status_code == 201
     item_id = created.json()["item"]["id"]
 
-    resolved = client.patch(f"/api/items/{item_id}/resolve")
+    forbidden = client.patch(f"/api/items/{item_id}/resolve", headers=other_headers)
+    assert forbidden.status_code == 403
+
+    resolved = client.patch(f"/api/items/{item_id}/resolve", headers=owner_headers)
     assert resolved.status_code == 200
     assert resolved.json()["item"]["status"] == "resolved"
 
     listing = client.get("/api/items")
     assert listing.status_code == 200
     assert listing.json()["count"] == 0
-
-
-def test_readiness_check(clean_database):
-    response = client.get("/api/health/ready")
-    assert response.status_code == 200
-    assert response.json() == {"status": "ready", "database": "connected"}

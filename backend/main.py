@@ -3,12 +3,15 @@ from io import BytesIO
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, UploadFile
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Query, UploadFile, status
+from fastapi.security import OAuth2PasswordRequestForm
 from PIL import Image, UnidentifiedImageError
 from sqlalchemy.orm import Session
 
 from backend.database import get_db
-from backend.models import Item
+from backend.models import Item, User
+from backend.schemas import RegisterRequest
+from backend.security import create_access_token, get_current_user, hash_password, verify_password
 
 logger = logging.getLogger(__name__)
 
@@ -101,6 +104,7 @@ def _read_upload(file: UploadFile) -> bytes:
 def _item_summary(item: Item) -> dict:
     return {
         "id": item.id,
+        "owner_id": item.owner_id,
         "item_type": item.item_type,
         "title": item.title,
         "category": item.category,
@@ -145,6 +149,51 @@ async def upload_image(file: UploadFile = File(...)):
     }
 
 
+
+
+@app.post("/api/auth/register", status_code=201)
+def register_user(payload: RegisterRequest, db: Session = Depends(get_db)):
+    email = str(payload.email).lower()
+    existing = db.query(User).filter(User.email == email).first()
+    if existing:
+        raise HTTPException(status_code=409, detail="An account with this email already exists.")
+
+    user = User(email=email, password_hash=hash_password(payload.password))
+    db.add(user)
+    try:
+        db.commit()
+        db.refresh(user)
+    except Exception:
+        db.rollback()
+        logger.exception("Account registration failed")
+        raise HTTPException(status_code=503, detail="Could not create the account.")
+
+    return {"message": "Account created.", "user": {"id": user.id, "email": user.email}}
+
+
+@app.post("/api/auth/login")
+def login_user(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db),
+):
+    user = db.query(User).filter(User.email == form_data.username.lower()).first()
+    if user is None or not verify_password(form_data.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return {
+        "access_token": create_access_token(user.id),
+        "token_type": "bearer",
+    }
+
+
+@app.get("/api/auth/me")
+def read_current_user(current_user: User = Depends(get_current_user)):
+    return {"id": current_user.id, "email": current_user.email}
+
 @app.post("/api/items", status_code=201)
 async def create_item(
     item_type: str = Form(..., pattern="^(lost|found)$"),
@@ -155,6 +204,7 @@ async def create_item(
     description: str = Form(default="", max_length=1000),
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     """Create a lost/found report and store its CLIP image embedding."""
     contents = _read_upload(file)
@@ -171,6 +221,7 @@ async def create_item(
             raise ValueError("The configured CLIP model must produce 512-dimensional embeddings.")
 
         item = Item(
+            owner_id=current_user.id,
             item_type=item_type,
             title=title.strip(),
             category=category.strip(),
@@ -286,10 +337,16 @@ def find_item_matches(
 
 
 @app.patch("/api/items/{item_id}/resolve")
-def resolve_item(item_id: str, db: Session = Depends(get_db)):
+def resolve_item(
+    item_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     item = db.query(Item).filter(Item.id == item_id).first()
     if item is None:
         raise HTTPException(status_code=404, detail="Item report was not found.")
+    if item.owner_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Only the report owner can mark it as resolved.")
     item.status = "resolved"
     db.commit()
     db.refresh(item)
