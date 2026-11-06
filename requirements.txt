@@ -7,3 +7,6 @@ uvicorn
 python-multipart
 httpx
 pytest
+SQLAlchemy
+psycopg[binary]
+pgvector
