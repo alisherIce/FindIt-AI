@@ -10,3 +10,6 @@ pytest
 SQLAlchemy
 psycopg[binary]
 pgvector
+email-validator
+pwdlib[argon2]
+PyJWT
