@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   ArrowDownRight,
   ArrowRight,
@@ -154,7 +154,7 @@ export default function App() {
     setShowReport(true);
   }
 
-  async function submitReport(event: React.FormEvent<HTMLFormElement>) {
+  async function submitReport(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selectedFile) {
       setError("Please choose a photo of the item.");
