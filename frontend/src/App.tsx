@@ -90,7 +90,7 @@ export default function App() {
   const [authError, setAuthError] = useState("");
   const [authBusy, setAuthBusy] = useState(false);
   const [pendingReportType, setPendingReportType] = useState<ItemType | null>(null);
-  const [filter, setFilter] = useState<"all" | ItemType>("all");
+  const [filter, setFilter] = useState<"all" | ItemType>("found");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -358,24 +358,22 @@ export default function App() {
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                onKeyDown={(event) => { if (event.key === "Enter") { setShowResultsFilters(true); document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" }); } }}
+                onKeyDown={(event) => { if (event.key === "Enter") { setFilter("found"); setShowResultsFilters(true); document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" }); } }}
                 placeholder="What have you lost? Try wallet, keys, phone..."
                 aria-label="Search lost and found items"
               /></label>
-              <button className="hero-search-submit" type="button" aria-label="Search" onClick={() => { setShowResultsFilters(true); document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" }); }}><Search size={21} /></button>
+              <button className="hero-search-submit" type="button" aria-label="Search" onClick={() => { setFilter("found"); setShowResultsFilters(true); document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" }); }}><Search size={21} /></button>
             </div>
-            <div className="hero-actions">
-              <button className="button button-primary" onClick={() => openReport("lost")}>
-                I lost something <ArrowUpRight size={17} />
-              </button>
-              <button className="button button-outline" onClick={() => openReport("found")}>
-                I found something <ArrowDownRight size={17} />
+            <div className="hero-actions hero-search-prompt">
+              <span><Search size={15} /> Search found-item reports first</span>
+              <button className="button button-primary" type="button" onClick={() => { setFilter("found"); setShowResultsFilters(true); document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" }); }}>
+                Find my item <ArrowUpRight size={17} />
               </button>
             </div>
             <div className="hero-quick-links">
               <span>Popular searches</span>
               {["Wallet", "Phone", "Keys", "Student ID"].map((term) => (
-                <button key={term} onClick={() => { setSearch(term); document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" }); }}>{term}</button>
+                <button key={term} onClick={() => { setSearch(term); setFilter("found"); setShowResultsFilters(true); document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" }); }}>{term}</button>
               ))}
             </div>
             <div className="trust-line"><ShieldCheck size={16} /> Your item photos are processed privately.</div>
@@ -453,11 +451,11 @@ export default function App() {
           )}
           <div className="section-heading">
             <div>
-              <div className="eyebrow">THE COMMUNITY BOARD</div>
-              <h2>Search lost & found items</h2>
-              <p>Browse recent reports from your campus community.</p>
+              <div className="eyebrow">SEARCH THE FOUND ITEMS</div>
+              <h2>Found items you may be looking for</h2>
+              <p>Search registered found-item reports and check for a possible match.</p>
             </div>
-            <button className="button button-dark" onClick={() => openReport("found")}><Plus size={17} /> Post a found item</button>
+            
           </div>
 
           <div className="toolbar">
@@ -528,7 +526,7 @@ export default function App() {
             <h2>Register your valuables with FindIt AI.</h2>
             <p>Keep a record of the belongings that matter. If something goes missing, you’ll have the details ready to help identify it.</p>
           </div>
-          <button className="button button-primary" onClick={() => openReport("lost")}>Register a valuable <ArrowRight size={17} /></button>
+          <button className="button button-primary" onClick={() => document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" })}>Search items <ArrowRight size={17} /></button>
         </section>
 
         <section className="how-section" id="how-it-works">
@@ -549,7 +547,7 @@ export default function App() {
             <p>Bring reports, searchable item records and AI-assisted matching into one clear workflow for your campus, event or venue.</p>
           </div>
           <div className="organization-actions">
-            <button className="button button-dark" onClick={() => openReport("found")}>Explore the platform <ArrowRight size={16} /></button>
+            <button className="button button-dark" onClick={() => document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" })}>Explore the platform <ArrowRight size={16} /></button>
             <span>Built to grow beyond one campus.</span>
           </div>
         </section>
