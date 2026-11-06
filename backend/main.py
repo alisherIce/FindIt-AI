@@ -2,7 +2,7 @@ from io import BytesIO
 from pathlib import Path
 from uuid import uuid4
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, Query, UploadFile
 from PIL import Image, UnidentifiedImageError
 
 app = FastAPI(
@@ -99,4 +99,38 @@ async def upload_image(file: UploadFile = File(...)):
         "width": width,
         "height": height,
         "status": "saved",
+    }
+
+@app.get("/api/matches/{filename}")
+def find_matches(
+    filename: str,
+    limit: int = Query(default=5, ge=1, le=10),
+):
+    """Find the most visually similar uploaded images using CLIP."""
+    if Path(filename).name != filename:
+        raise HTTPException(status_code=400, detail="Invalid image filename.")
+
+    query_path = UPLOAD_DIR / filename
+    if not query_path.is_file():
+        raise HTTPException(status_code=404, detail="Uploaded image was not found.")
+
+    # Import inside the route so health checks and uploads do not load CLIP.
+    try:
+        from ml.image_matcher import find_similar_images
+
+        matches = find_similar_images(query_path, UPLOAD_DIR, top_k=limit)
+    except Exception:
+        import logging
+
+        logging.exception("FindIt AI image matching failed")
+        raise HTTPException(
+            status_code=503,
+            detail="AI matching is unavailable. Check the ML dependencies and model setup.",
+        )
+
+    return {
+        "query_filename": filename,
+        "match_count": len(matches),
+        "matches": matches,
+        "note": "Visual similarity is a suggestion, not proof of ownership.",
     }
