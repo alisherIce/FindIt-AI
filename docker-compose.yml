@@ -26,6 +26,7 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://findit:findit_dev_password@db:5432/findit
       HF_HOME: /root/.cache/huggingface
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-local-development-only-change-this-secret}
     ports:
       - "8000:8000"
     volumes:
