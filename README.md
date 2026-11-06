@@ -97,6 +97,10 @@ FindIt-AI/
 └── README.md
 ```
 
+## Kubernetes deployment
+
+Kubernetes manifests and the Jenkins pipeline are provided in `k8s/` and `Jenkinsfile`. See [k8s/README.md](k8s/README.md) for cluster setup, secret creation, image publishing, and Jenkins credentials. The Kubernetes Services are internal-only; use port-forwarding for a local demo.
+
 ## Important MVP limitations
 
 This is a course-project MVP, not yet a production-ready public service. Authentication, per-user authorization, private messaging, moderation, rate limiting, database migrations, and durable cloud object storage still need to be implemented. The current local development endpoints allow reports to be created and marked resolved without accounts, so do not expose this stack publicly or enter sensitive personal information.
