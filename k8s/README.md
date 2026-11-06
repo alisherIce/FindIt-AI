@@ -66,7 +66,7 @@ Create these Jenkins credentials:
 The Jenkins agent needs Python 3.11, Docker with Compose, `kubectl`, and permission to build/push images and deploy to the cluster. Create a Multibranch Pipeline job pointing to this repository so the `main` branch deploy stage is recognized.
 
 Before the first Jenkins deployment:
-- Create the `findit-secrets` Secret in the cluster using the command above.
+- Create the `findit-secrets` Secret in the cluster using the command above (it includes a generated JWT signing key).
 - Ensure the GHCR image packages are public or configure a registry pull secret.
 - Ensure the cluster has a default StorageClass.
 - Configure Jenkins credentials exactly as named above.
