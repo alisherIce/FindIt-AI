@@ -242,3 +242,64 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .modal { max-height: 92vh; padding: 21px 17px; border-radius: 20px 20px 12px 12px; }
   .form-row { grid-template-columns: 1fr; }
 }
+
+/* iLost-inspired FindIt AI homepage refresh */
+.ilost-hero { max-width:1280px; min-height:570px; margin:0 auto; padding:70px 7.2% 64px; display:grid; grid-template-columns:minmax(0,1.08fr) minmax(320px,.92fr); align-items:center; gap:36px; border:0; border-radius:0; background:#f4f7fa; overflow:hidden; }
+.ilost-hero::before { display:none; }
+.ilost-hero-inner { position:relative; z-index:2; }
+.ilost-hero .eyebrow { color:#53728b; letter-spacing:1.5px; }
+.ilost-hero h1 { margin:21px 0 17px; font:800 clamp(43px,5vw,66px)/1.04 'Manrope',sans-serif; letter-spacing:-3.8px; }
+.ilost-hero h1 span { color:#397cae; }
+.ilost-hero .hero-description { max-width:500px; color:#667788; font-size:15px; line-height:1.75; }
+.ilost-search { width:min(100%,690px); min-height:68px; margin-top:32px; padding:8px 9px 8px 19px; display:flex; align-items:center; gap:12px; border:1px solid #dce4eb; border-radius:8px; color:#74889a; background:white; box-shadow:0 8px 24px #29435b0b; }
+.ilost-search input { min-width:0; flex:1; border:0; outline:0; color:#26394a; background:transparent; font-size:13px; }
+.ilost-search input::placeholder { color:#98a6b2; }
+.ilost-location { display:flex; align-items:center; gap:6px; padding:0 12px; border-left:1px solid #e5ebf0; color:#5d7182; font-size:11px; white-space:nowrap; }
+.ilost-search .button { min-height:49px; border-radius:6px; white-space:nowrap; }
+.ilost-hero-actions { margin-top:21px; display:flex; align-items:center; flex-wrap:wrap; gap:12px; color:#718292; font-size:11px; }
+.ilost-hero-actions .button { min-height:38px; border-radius:6px; font-size:11px; }
+.text-action { display:inline-flex; align-items:center; gap:5px; padding:8px 4px; border:0; color:#397cae; background:transparent; font-size:11px; font-weight:700; }
+.ilost-proof { margin-top:28px; display:flex; align-items:center; flex-wrap:wrap; gap:8px; color:#80909d; font-size:10px; }
+.ilost-proof svg { color:#398866; }
+.ilost-hero-visual { min-height:350px; position:relative; display:grid; place-items:center; }
+.ilost-visual-circle { position:absolute; border:1px solid #dbe5ed; border-radius:50%; }
+.circle-a { width:350px; height:350px; }
+.circle-b { width:265px; height:265px; border-style:dashed; }
+.ilost-visual-center { width:145px; height:145px; display:grid; place-items:center; border:1px solid #e0e8ee; border-radius:50%; color:#397cae; background:#fff; box-shadow:0 15px 45px #29435b12; }
+.ilost-floating-card { position:absolute; z-index:2; min-width:230px; padding:15px; display:flex; align-items:center; gap:11px; border:1px solid #e3eaf0; border-radius:9px; color:#4b6b83; background:#fff; box-shadow:0 15px 38px #29435b12; }
+.ilost-floating-card b,.ilost-floating-card small { display:block; }
+.ilost-floating-card b { color:#26394a; font-size:11px; }
+.ilost-floating-card small { margin-top:4px; color:#8998a4; font-size:9px; }
+.ilost-floating-card > svg:last-child { margin-left:auto; color:#39916b; }
+.ilost-card-icon { width:43px; height:43px; display:grid; place-items:center; border-radius:8px; color:#967b55; background:#f5f1e9; }
+.ilost-card-icon.blue { color:#397cae; background:#edf4f9; }
+.card-one { top:55px; right:0; transform:rotate(3deg); }
+.card-two { bottom:52px; left:-6px; transform:rotate(-3deg); }
+.ilost-trust-strip { max-width:1280px; min-height:88px; margin:0 auto; padding:20px 7.2%; display:flex; align-items:center; justify-content:space-between; gap:18px; border-bottom:1px solid #e8edf1; color:#7890a2; }
+.ilost-trust-strip > span { font-size:9px; font-weight:700; letter-spacing:1.1px; }
+.ilost-trust-strip strong { color:#607688; font-size:12px; font-weight:700; }
+.ilost-trust-strip i { width:5px; height:5px; border-radius:50%; background:#c6d3dd; }
+.stats-row { max-width:1120px; }
+.list-section { max-width:1120px; margin-top:62px; }
+.section-heading h2 { font-size:32px; }
+.item-card { border-radius:9px; }
+.item-visual { height:165px; }
+.how-section { max-width:1120px; border-radius:10px; background:#f4f7fa; }
+.how-card { border-radius:8px; }
+.footer { max-width:1280px; }
+@media (max-width:900px) { .ilost-hero { grid-template-columns:1fr; padding:55px 6%; gap:5px; } .ilost-hero-visual { min-height:300px; } .ilost-trust-strip { flex-wrap:wrap; justify-content:center; } }
+@media (max-width:640px) {
+.ilost-hero { margin:0; padding:43px 19px 20px; }
+.ilost-hero h1 { font-size:43px; letter-spacing:-2.3px; }
+.ilost-search { min-height:0; padding:13px; flex-wrap:wrap; border-radius:8px; }
+.ilost-search input { flex-basis:calc(100% - 40px); min-height:35px; }
+.ilost-location { flex:1; padding:10px 0 0; border-left:0; border-top:1px solid #edf0f3; }
+.ilost-search .button { margin-top:7px; }
+.ilost-hero-actions { align-items:flex-start; }
+.ilost-proof { line-height:1.7; }
+.ilost-hero-visual { min-height:260px; transform:scale(.86); transform-origin:top center; }
+.circle-a { width:285px; height:285px; } .circle-b { width:220px; height:220px; }
+.card-one { right:-8px; top:24px; } .card-two { left:-8px; bottom:15px; }
+.ilost-trust-strip { min-height:100px; padding:18px 15px; gap:10px 15px; }
+.ilost-trust-strip > span { width:100%; text-align:center; }
+}
