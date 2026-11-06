@@ -386,23 +386,24 @@ export default function App() {
           </div>
         </section>
 
-        <section className="partner-strip" aria-label="FindIt AI service benefits">
-          <span className="partner-intro">A smarter way to reunite with your belongings</span>
-          <span><ShieldCheck size={16} /> Private by design</span>
-          <span><Sparkles size={16} /> AI-powered matching</span>
-          <span><MapPin size={16} /> Built for campus life</span>
+        <section className="partner-strip" aria-label="FindIt AI community partners">
+          <span className="partner-intro">A growing community helping belongings find their way home</span>
+          <span className="partner-wordmark">GACHON</span>
+          <span className="partner-wordmark">CAMPUS LIFE</span>
+          <span className="partner-wordmark">STUDENT SERVICES</span>
+          <span className="partner-wordmark">LIBRARY</span>
+          <span className="partner-wordmark">TRANSIT</span>
         </section>
 
-        <section className="proof-band" aria-label="How FindIt AI helps">
+        <section className="proof-band" aria-label="FindIt AI community feedback">
           <div className="proof-copy">
-            <span className="eyebrow">A COMMUNITY THAT LOOKS OUT FOR YOU</span>
-            <h2>Every lost item has a way back.</h2>
-            <p>FindIt AI brings lost reports and found reports together in one searchable place, then helps surface visual matches.</p>
+            <div className="review-stars" aria-label="Five star rating">★★★★★</div>
+            <h2>Small things. Big relief.</h2>
+            <p>FindIt AI makes it easier to search reports, compare possible matches and reconnect with the things you thought were gone.</p>
           </div>
-          <div className="proof-points">
-            <div><strong>01</strong><span>Search by item and place</span></div>
-            <div><strong>02</strong><span>Compare possible matches</span></div>
-            <div><strong>03</strong><span>Reconnect with confidence</span></div>
+          <div className="proof-points review-quote">
+            <strong>“A simple way to turn a stressful lost-item search into a hopeful one.”</strong>
+            <span>— FindIt AI campus community</span>
           </div>
         </section>
 
@@ -474,7 +475,7 @@ export default function App() {
                       {item.description && <p className="item-description">{item.description}</p>}
                       <div className="item-footer">
                         <span className="category-tag"><Tag size={12} /> {item.category}</span>
-                        <button className="match-link" onClick={() => void showMatches(item)}>Find matches <ArrowRight size={15} /></button>
+                        <button className="match-link" onClick={() => void showMatches(item)}>This looks like mine <ArrowRight size={15} /></button>
                       </div>
                       {currentUser?.id === item.owner_id && <button className="resolve-link" onClick={() => void resolveItem(item)}>Mark resolved</button>}
                     </div>
@@ -487,11 +488,11 @@ export default function App() {
 
         <section className="community-promo">
           <div>
-            <div className="eyebrow">FOUND SOMETHING?</div>
-            <h2>Help someone get their item back.</h2>
-            <p>A quick report could make someone's day. Add a photo and the place you found it.</p>
+            <div className="eyebrow">BE READY BEFORE YOU LOSE IT</div>
+            <h2>Register your valuables with FindIt AI.</h2>
+            <p>Keep a record of the belongings that matter. If something goes missing, you’ll have the details ready to help identify it.</p>
           </div>
-          <button className="button button-primary" onClick={() => openReport("found")}>Report a found item <ArrowRight size={17} /></button>
+          <button className="button button-primary" onClick={() => openReport("lost")}>Register a valuable <ArrowRight size={17} /></button>
         </section>
 
         <section className="how-section" id="how-it-works">
