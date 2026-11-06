@@ -14,6 +14,7 @@ app = FastAPI(
 # Local development storage. Uploaded files are intentionally not public.
 UPLOAD_DIR = Path(__file__).resolve().parent.parent / "uploads"
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
+MAX_IMAGE_PIXELS = 20_000_000  # Limit decoded image size to reduce decompression-bomb risk.
 
 # Match the declared MIME type to the image format decoded by Pillow.
 ALLOWED_FORMATS = {
@@ -60,8 +61,14 @@ async def upload_image(file: UploadFile = File(...)):
                     detail="The file content does not match its declared image type.",
                 )
 
-            image.load()
             width, height = image.size
+            if width * height > MAX_IMAGE_PIXELS:
+                raise HTTPException(
+                    status_code=413,
+                    detail="Image dimensions are too large.",
+                )
+
+            image.load()
 
             # Re-encoding removes embedded metadata such as EXIF GPS coordinates.
             cleaned_image = image.convert("RGB")
