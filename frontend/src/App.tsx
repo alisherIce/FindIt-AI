@@ -339,8 +339,19 @@ export default function App() {
             <div className="eyebrow"><Sparkles size={14} /> SMART CAMPUS LOST & FOUND</div>
             <h1>Lost something?<br /><span>Let’s bring it back.</span></h1>
             <p className="hero-description">
-              A little help from your campus community — and AI that knows what to look for.
+              Search thousands of lost-and-found reports or let our visual AI help reconnect you with what matters.
             </p>
+            <label className="hero-search">
+              <Search size={19} />
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                onKeyDown={(event) => { if (event.key === "Enter") document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" }); }}
+                placeholder="What have you lost? Try wallet, keys, phone..."
+                aria-label="Search lost and found items"
+              />
+              <button type="button" onClick={() => document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" })}>Search</button>
+            </label>
             <div className="hero-actions">
               <button className="button button-primary" onClick={() => openReport("lost")}>
                 I lost something <ArrowUpRight size={17} />
@@ -367,6 +378,13 @@ export default function App() {
           </div>
         </section>
 
+        <section className="partner-strip" aria-label="FindIt AI service benefits">
+          <span className="partner-intro">A smarter way to reunite with your belongings</span>
+          <span><ShieldCheck size={16} /> Private by design</span>
+          <span><Sparkles size={16} /> AI-powered matching</span>
+          <span><MapPin size={16} /> Built for campus life</span>
+        </section>
+
         <section className="stats-row" aria-label="Community report statistics">
           <div className="stat-block"><span className="stat-icon stat-purple"><Package size={18} /></span><div><strong>{items.length}</strong><span>Active reports</span></div></div>
           <div className="stat-block"><span className="stat-icon stat-orange"><Search size={18} /></span><div><strong>{lostCount}</strong><span>Items lost</span></div></div>
@@ -374,12 +392,12 @@ export default function App() {
           <div className="stats-note"><Sparkles size={16} /> Powered by visual AI matching</div>
         </section>
 
-        <section className="list-section">
+        <section className="list-section" id="community-board">
           <div className="section-heading">
             <div>
               <div className="eyebrow">THE COMMUNITY BOARD</div>
-              <h2>Recently reported</h2>
-              <p>Browse campus reports and discover a possible match.</p>
+              <h2>Search lost & found items</h2>
+              <p>Browse recent reports from your campus community.</p>
             </div>
             <button className="button button-dark" onClick={() => openReport("found")}><Plus size={17} /> Post a found item</button>
           </div>
@@ -444,6 +462,15 @@ export default function App() {
               })}
             </div>
           )}
+        </section>
+
+        <section className="community-promo">
+          <div>
+            <div className="eyebrow">FOUND SOMETHING?</div>
+            <h2>Help someone get their item back.</h2>
+            <p>A quick report could make someone's day. Add a photo and the place you found it.</p>
+          </div>
+          <button className="button button-primary" onClick={() => openReport("found")}>Report a found item <ArrowRight size={17} /></button>
         </section>
 
         <section className="how-section" id="how-it-works">
