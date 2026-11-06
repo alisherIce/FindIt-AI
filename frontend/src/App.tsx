@@ -66,7 +66,9 @@ function formatDate(value: string) {
 async function readError(response: Response) {
   try {
     const body = await response.json();
-    return body.detail || body.message || "Something went wrong. Please try again.";
+    const detail = body.detail || body.message;
+    if (Array.isArray(detail)) return detail.map((entry) => entry.msg || "Invalid input").join(" ");
+    return detail || "Something went wrong. Please try again.";
   } catch {
     return "Something went wrong. Please try again.";
   }
@@ -187,6 +189,7 @@ export default function App() {
     if (!token) {
       setPendingReportType(type);
       setAuthError("");
+      setAuthMode("login");
       setShowAuth(true);
       return;
     }
@@ -223,6 +226,7 @@ export default function App() {
       if (!profile.ok) throw new Error("Could not load your account.");
       setCurrentUser(await profile.json());
       setShowAuth(false);
+      setAuthMode("login");
       setAuthPassword("");
       setNotice(authMode === "register" ? "Your account is ready." : "Welcome back.");
       if (pendingReportType) {
@@ -321,7 +325,7 @@ export default function App() {
               <button className="icon-button signout-button" onClick={signOut} aria-label="Sign out" title="Sign out"><LogOut size={16} /></button>
             </div>
           ) : (
-            <button className="button button-outline button-small" onClick={() => { setAuthError(""); setShowAuth(true); }}>Sign in</button>
+            <button className="button button-outline button-small" onClick={() => { setAuthError(""); setAuthMode("login"); setShowAuth(true); }}>Sign in</button>
           )}
           <button className="button button-dark button-small" onClick={() => openReport("lost")}>
             <Plus size={16} /> Report an item
