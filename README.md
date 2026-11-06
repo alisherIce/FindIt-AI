@@ -5,7 +5,8 @@ FindIt AI is a campus lost-and-found application. Students can report lost or fo
 ## Current features
 
 - React + TypeScript campus dashboard and report form
-- FastAPI backend for lost/found reports
+- FastAPI backend for lost/found reports with JWT account registration and login
+- Owner-only report resolution and authenticated report creation
 - PostgreSQL with pgvector for report metadata and 512-dimensional image embeddings
 - CLIP-based visual similarity search between opposite report types
 - Image validation, server-generated filenames, and metadata-stripping re-encoding
@@ -78,10 +79,10 @@ Open <http://localhost:5173>. Vite proxies API requests to the local FastAPI ser
 | --- | --- | --- |
 | GET | `/api/health` | Backend health check |
 | POST | `/api/upload` | Validate and save a standalone image |
-| POST | `/api/items` | Create a lost/found report and generate its embedding |
+| POST | `/api/auth/register` | Register an account |\n| POST | `/api/auth/login` | Sign in and receive a bearer token |\n| GET | `/api/auth/me` | Get the signed-in account |\n| POST | `/api/items` | Create an authenticated lost/found report and generate its embedding |
 | GET | `/api/items` | List active reports |
 | GET | `/api/items/{id}/matches` | Rank possible opposite-type matches |
-| PATCH | `/api/items/{id}/resolve` | Mark a report as resolved |
+| PATCH | `/api/items/{id}/resolve` | Mark your own report as resolved |
 
 ## Project structure
 
@@ -103,6 +104,6 @@ Kubernetes manifests and the Jenkins pipeline are provided in `k8s/` and `Jenkin
 
 ## Important MVP limitations
 
-This is a course-project MVP, not yet a production-ready public service. Authentication, per-user authorization, private messaging, moderation, rate limiting, database migrations, and durable cloud object storage still need to be implemented. The current local development endpoints allow reports to be created and marked resolved without accounts, so do not expose this stack publicly or enter sensitive personal information.
+This is a course-project MVP, not yet a production-ready public service. Private messaging, moderation, rate limiting, database migrations, and durable cloud object storage still need to be implemented. The current local development endpoints allow reports to be created and marked resolved without accounts, so do not expose this stack publicly or enter sensitive personal information. JWTs are currently stored in browser local storage for this MVP; a production deployment should use a carefully designed secure session strategy.
 
 CLIP similarity is a visual ranking signal, not a probability of ownership or proof. Users should verify an item privately before arranging a handover. Public descriptions should not contain serial numbers, secret identifying details, or personal contact information.
