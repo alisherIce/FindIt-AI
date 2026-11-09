@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
-  ArrowDownRight,
   ArrowRight,
   ArrowUpRight,
   BadgeCheck,
@@ -12,6 +11,10 @@ import {
   Compass,
   FileImage,
   Filter,
+  Globe2,
+  GraduationCap,
+  Bus,
+  CircleHelp,
   Laptop,
   LogOut,
   MapPin,
@@ -86,7 +89,7 @@ export default function App() {
   const [authError, setAuthError] = useState("");
   const [authBusy, setAuthBusy] = useState(false);
   const [pendingReportType, setPendingReportType] = useState<ItemType | null>(null);
-  const [filter, setFilter] = useState<"all" | ItemType>("all");
+  const [filter, setFilter] = useState<"all" | ItemType>("found");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -99,6 +102,21 @@ export default function App() {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loadingMatches, setLoadingMatches] = useState(false);
   const [notice, setNotice] = useState("");
+  const [country, setCountry] = useState("South Korea");
+  const [showResultsFilters, setShowResultsFilters] = useState(false);
+  const [pickedDate, setPickedDate] = useState("");
+  const [heroImageIndex, setHeroImageIndex] = useState(0);
+  const heroImages = [
+    "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=2200&q=85",
+    "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=2200&q=85",
+    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=2200&q=85",
+    "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=2200&q=85"
+  ];
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setHeroImageIndex((current) => (current + 1) % heroImages.length), 6500);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const [form, setForm] = useState({
     title: "",
@@ -158,13 +176,14 @@ export default function App() {
     const term = search.trim().toLowerCase();
     return items.filter((item) => {
       const typeMatches = filter === "all" || item.item_type === filter;
+      const dateMatches = !pickedDate || new Date(item.created_at).toISOString().slice(0, 10) === pickedDate;
       const textMatches =
         !term ||
         [item.title, item.category, item.campus, item.location, item.description]
           .some((value) => value.toLowerCase().includes(term));
-      return typeMatches && textMatches;
+      return typeMatches && textMatches && dateMatches;
     });
-  }, [items, filter, search]);
+  }, [items, filter, search, pickedDate]);
 
   const lostCount = items.filter((item) => item.item_type === "lost").length;
   const foundCount = items.filter((item) => item.item_type === "found").length;
@@ -309,18 +328,19 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <header className="topbar">
+      <header className="topbar is-visible">
         <a className="brand" href="/" aria-label="FindIt AI home">
-          <span className="brand-mark"><Sparkles size={20} /></span>
-          <span>findit<span className="brand-ai">.ai</span></span>
+          <span className="brand-mark"><MapPin size={22} fill="currentColor" strokeWidth={2.5} /></span>
+          <span className="brand-word">FindIt <span className="brand-ai">AI</span></span>
         </a>
         <nav className="top-nav" aria-label="Main navigation">
-          <a className="nav-active" href="#discover">Find an item</a>
+          <a className="nav-active" href="#discover">Search items</a>
           <a href="#how-it-works">How it works</a>
           <a href="#organizations">For organizations</a>
         </nav>
         <div className="topbar-right">
-          <span className="campus-chip"><span className="live-dot" /> Campus community</span>
+          <button className="country-nav" type="button" onClick={() => document.getElementById("country-select")?.focus()}><Globe2 size={17} /> Countries <ChevronDown size={14} /></button>
+          <button className="help-nav" type="button" onClick={() => document.getElementById("help-section")?.scrollIntoView({ behavior: "smooth" })}><CircleHelp size={18} /> Help</button>
           {currentUser ? (
             <div className="account-actions">
               <span className="account-email">{currentUser.email}</span>
@@ -337,35 +357,35 @@ export default function App() {
 
       <main>
         <section className="hero" id="discover">
+          <img key={heroImageIndex} className="hero-photo" src={heroImages[heroImageIndex]} alt="" aria-hidden="true" />
           <div className="hero-copy">
             <div className="eyebrow"><Sparkles size={14} /> SMART CAMPUS LOST & FOUND</div>
             <h1>Lost something?<br /><span>Let’s bring it back.</span></h1>
             <p className="hero-description">
               Search thousands of lost-and-found reports or let our visual AI help reconnect you with what matters.
             </p>
-            <label className="hero-search">
-              <Search size={19} />
+            <div className="hero-search">
+              <label className="hero-country"><Globe2 size={18} /><select id="country-select" value={country} onChange={(event) => setCountry(event.target.value)} aria-label="Choose country"><option value="South Korea">🇰🇷  South Korea</option><option value="United States">🇺🇸  United States</option><option value="United Kingdom">🇬🇧  United Kingdom</option><option value="Uzbekistan">🇺🇿  Uzbekistan</option><option value="Japan">🇯🇵  Japan</option><option value="Canada">🇨🇦  Canada</option><option value="Australia">🇦🇺  Australia</option><option value="Germany">🇩🇪  Germany</option><option value="France">🇫🇷  France</option><option value="Italy">🇮🇹  Italy</option><option value="Spain">🇪🇸  Spain</option><option value="Netherlands">🇳🇱  Netherlands</option><option value="Switzerland">🇨🇭  Switzerland</option><option value="Sweden">🇸🇪  Sweden</option><option value="Norway">🇳🇴  Norway</option><option value="Singapore">🇸🇬  Singapore</option><option value="Malaysia">🇲🇾  Malaysia</option><option value="Türkiye">🇹🇷  Türkiye</option><option value="United Arab Emirates">🇦🇪  United Arab Emirates</option><option value="India">🇮🇳  India</option><option value="China">🇨🇳  China</option><option value="Brazil">🇧🇷  Brazil</option><option value="Mexico">🇲🇽  Mexico</option><option value="New Zealand">🇳🇿  New Zealand</option><option value="All countries">🌐  All countries</option></select><ChevronDown size={14} /></label>
+              <label className="hero-query"><Search size={19} />
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                onKeyDown={(event) => { if (event.key === "Enter") document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" }); }}
+                onKeyDown={(event) => { if (event.key === "Enter") { setFilter("found"); setShowResultsFilters(true); document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" }); } }}
                 placeholder="What have you lost? Try wallet, keys, phone..."
                 aria-label="Search lost and found items"
-              />
-              <button type="button" onClick={() => document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" })}>Search</button>
-            </label>
-            <div className="hero-actions">
-              <button className="button button-primary" onClick={() => openReport("lost")}>
-                I lost something <ArrowUpRight size={17} />
-              </button>
-              <button className="button button-outline" onClick={() => openReport("found")}>
-                I found something <ArrowDownRight size={17} />
+              /></label>
+              <button className="hero-search-submit" type="button" aria-label="Search" onClick={() => { setFilter("found"); setShowResultsFilters(true); document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" }); }}><Search size={21} /></button>
+            </div>
+            <div className="hero-actions hero-search-prompt">
+              <span><Search size={15} /> Search found-item reports first</span>
+              <button className="button button-primary" type="button" onClick={() => { setFilter("found"); setShowResultsFilters(true); document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" }); }}>
+                Find my item <ArrowUpRight size={17} />
               </button>
             </div>
             <div className="hero-quick-links">
               <span>Popular searches</span>
               {["Wallet", "Phone", "Keys", "Student ID"].map((term) => (
-                <button key={term} onClick={() => { setSearch(term); document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" }); }}>{term}</button>
+                <button key={term} onClick={() => { setSearch(term); setFilter("found"); setShowResultsFilters(true); document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" }); }}>{term}</button>
               ))}
             </div>
             <div className="trust-line"><ShieldCheck size={16} /> Your item photos are processed privately.</div>
@@ -386,13 +406,29 @@ export default function App() {
           </div>
         </section>
 
-        <section className="partner-strip" aria-label="FindIt AI community partners">
-          <span className="partner-intro">A growing community helping belongings find their way home</span>
-          <span className="partner-wordmark">GACHON</span>
-          <span className="partner-wordmark">CAMPUS LIFE</span>
-          <span className="partner-wordmark">STUDENT SERVICES</span>
-          <span className="partner-wordmark">LIBRARY</span>
-          <span className="partner-wordmark">TRANSIT</span>
+        <section className="partners-section" aria-label="FindIt AI partner organizations">
+          <h2 className="partner-intro">Trusted by our campus and community partners</h2>
+          <p className="partners-subtitle">Working together to return belongings to the people who miss them</p>
+          <div className="partners-marquee">
+            <div className="partners-track">
+              <div className="partners-group">
+                <span className="partner-logo partner-gachon"><span className="partner-symbol">G</span> GACHON UNIVERSITY</span>
+                <span className="partner-logo"><Building2 size={24}/> CAMPUS LIFE</span>
+                <span className="partner-logo"><GraduationCap size={25}/> STUDENT SERVICES</span>
+                <span className="partner-logo"><BookOpen size={24}/> UNIVERSITY LIBRARY</span>
+                <span className="partner-logo"><Bus size={25}/> CAMPUS TRANSIT</span>
+                <span className="partner-logo"><ShieldCheck size={24}/> CAMPUS SECURITY</span>
+              </div>
+              <div className="partners-group" aria-hidden="true">
+                <span className="partner-logo partner-gachon"><span className="partner-symbol">G</span> GACHON UNIVERSITY</span>
+                <span className="partner-logo"><Building2 size={24}/> CAMPUS LIFE</span>
+                <span className="partner-logo"><GraduationCap size={25}/> STUDENT SERVICES</span>
+                <span className="partner-logo"><BookOpen size={24}/> UNIVERSITY LIBRARY</span>
+                <span className="partner-logo"><Bus size={25}/> CAMPUS TRANSIT</span>
+                <span className="partner-logo"><ShieldCheck size={24}/> CAMPUS SECURITY</span>
+              </div>
+            </div>
+          </div>
         </section>
 
         <section className="proof-band" aria-label="FindIt AI community feedback">
@@ -415,13 +451,23 @@ export default function App() {
         </section>
 
         <section className="list-section" id="community-board">
+          {showResultsFilters && (
+            <div className="results-searchbar" aria-label="Search result filters">
+              <label className="results-country"><Globe2 size={17} /><select value={country} onChange={(event) => setCountry(event.target.value)} aria-label="Filter by country">
+                <option>South Korea</option><option>United States</option><option>United Kingdom</option><option>Uzbekistan</option><option>Japan</option><option>All countries</option>
+              </select><ChevronDown size={14} /></label>
+              <label className="results-location"><Search size={17} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Key in Seoul" aria-label="Search by item or location" /></label>
+              <label className="results-date"><Clock3 size={16} /><span className="date-label">Pick date</span><input type="date" value={pickedDate} onChange={(event) => setPickedDate(event.target.value)} aria-label="Filter items by date" /></label>
+              <button className="results-search-button" type="button" onClick={() => document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" })} aria-label="Apply search"><Search size={19} /></button>
+            </div>
+          )}
           <div className="section-heading">
             <div>
-              <div className="eyebrow">THE COMMUNITY BOARD</div>
-              <h2>Search lost & found items</h2>
-              <p>Browse recent reports from your campus community.</p>
+              <div className="eyebrow">SEARCH THE FOUND ITEMS</div>
+              <h2>Found items you may be looking for</h2>
+              <p>Search registered found-item reports and check for a possible match.</p>
             </div>
-            <button className="button button-dark" onClick={() => openReport("found")}><Plus size={17} /> Post a found item</button>
+            
           </div>
 
           <div className="toolbar">
@@ -455,7 +501,7 @@ export default function App() {
               <span className="empty-icon"><Compass size={26} /></span>
               <strong>{items.length === 0 ? "Your campus board is ready." : "No reports found."}</strong>
               <p>{items.length === 0 ? "Be the first to post a lost or found item." : "Try another search or filter."}</p>
-              {items.length === 0 && <button className="button button-primary" onClick={() => openReport("found")}><Plus size={16} /> Post the first report</button>}
+              
             </div>
           ) : (
             <div className="item-grid">
@@ -484,6 +530,16 @@ export default function App() {
               })}
             </div>
           )}
+          <div className="found-report-cta">
+            <div>
+              <span className="eyebrow">HELP SOMEONE GET IT BACK</span>
+              <h3>Found something that belongs to someone else?</h3>
+              <p>Register the item so its owner can search for it and identify it.</p>
+            </div>
+            <button className="button button-primary" type="button" onClick={() => openReport("found")}>
+              <Plus size={17} /> I found something — Report it <ArrowRight size={17} />
+            </button>
+          </div>
         </section>
 
         <section className="community-promo">
@@ -492,7 +548,7 @@ export default function App() {
             <h2>Register your valuables with FindIt AI.</h2>
             <p>Keep a record of the belongings that matter. If something goes missing, you’ll have the details ready to help identify it.</p>
           </div>
-          <button className="button button-primary" onClick={() => openReport("lost")}>Register a valuable <ArrowRight size={17} /></button>
+          <button className="button button-primary" onClick={() => document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" })}>Search items <ArrowRight size={17} /></button>
         </section>
 
         <section className="how-section" id="how-it-works">
@@ -513,7 +569,7 @@ export default function App() {
             <p>Bring reports, searchable item records and AI-assisted matching into one clear workflow for your campus, event or venue.</p>
           </div>
           <div className="organization-actions">
-            <button className="button button-dark" onClick={() => openReport("found")}>Explore the platform <ArrowRight size={16} /></button>
+            <button className="button button-dark" onClick={() => document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" })}>Explore the platform <ArrowRight size={16} /></button>
             <span>Built to grow beyond one campus.</span>
           </div>
         </section>
@@ -536,7 +592,7 @@ export default function App() {
       <footer className="site-footer">
         <div className="footer-main">
           <div className="footer-brand-column">
-            <a className="brand" href="/"><span className="brand-mark"><Sparkles size={18} /></span><span>findit<span className="brand-ai">.ai</span></span></a>
+            <a className="brand" href="/" aria-label="FindIt AI home"><span className="brand-mark"><MapPin size={20} fill="currentColor" /></span><span className="brand-word">FindIt <span className="brand-ai">AI</span></span></a>
             <p>Helping campus communities bring lost belongings back to the people who matter.</p>
             <span className="footer-status"><span className="live-dot" /> FindIt AI community platform</span>
           </div>
