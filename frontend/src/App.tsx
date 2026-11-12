@@ -55,21 +55,21 @@ type CurrentUser = { id: string; email: string };
 const hotspotCulture: Record<string, { country: string; image: string; alt: string; title: string; description: string; source: string; sourceLabel: string }> = {
   Seoul: {
     country: "South Korea",
-    image: "https://7d9e88a8-f178-4098-bea5-48d960920605.selcdn.net/3802a836-9319-46ce-8731-1d17f9f146be/",
-    alt: "Traditional Korean hanok houses along a narrow street in Seoul",
-    title: "Hanok heritage, modern Seoul",
+    image: "https://commons.wikimedia.org/wiki/Special:FilePath/Geunjeongjeon_Seoul.jpg?width=1000",
+    alt: "Geunjeongjeon Hall at Gyeongbokgung Palace in Seoul",
+    title: "Gyeongbokgung Palace heritage",
     description: "Explore the tiled roofs and wooden architecture of Bukchon and Seochon, where historic neighbourhoods sit beside the modern capital.",
-    source: "https://english.seoul.go.kr/seochon-village-in-seoul/",
-    sourceLabel: "Seoul Metropolitan Government"
+    source: "https://commons.wikimedia.org/wiki/File:Geunjeongjeon_Seoul.jpg",
+    sourceLabel: "kallerna · CC BY-SA 4.0"
   },
   Tokyo: {
     country: "Japan",
-    image: "https://chloestravelogue.com/things-to-do-asakusa-tokyo/hanayashiki-edo-shopping-street/",
-    alt: "Traditional shopfronts and visitors in Tokyo's Asakusa district",
-    title: "Old-town Asakusa",
+    image: "https://commons.wikimedia.org/wiki/Special:FilePath/Tokyo_Tower_2023.jpg?width=1000",
+    alt: "Tokyo Tower rising above the city",
+    title: "Tokyo's cityscape and traditions",
     description: "Discover the lanterns, noren curtains and traditional shopfronts of Asakusa, a historic district in the heart of Tokyo.",
-    source: "https://chloestravelogue.com/things-to-do-asakusa-tokyo/",
-    sourceLabel: "Asakusa photo story"
+    source: "https://commons.wikimedia.org/wiki/File:Tokyo_Tower_2023.jpg",
+    sourceLabel: "Akonnchiroll · CC BY-SA 4.0"
   },
   London: {
     country: "United Kingdom",
@@ -100,12 +100,12 @@ const hotspotCulture: Record<string, { country: string; image: string; alt: stri
   },
   Singapore: {
     country: "Singapore",
-    image: "https://i.shgcdn.com/60f01ebf-25cf-47c7-a394-4328713ce085/-/format/auto/-/preview/3000x3000/-/quality/lighter/",
+    image: "https://commons.wikimedia.org/wiki/Special:FilePath/Singapore_Skyline_2019-10.jpg?width=1000",
     alt: "Colorful Peranakan heritage shophouses in Singapore",
     title: "Peranakan heritage streets",
     description: "Pastel shophouses, ornate tiles and decorative façades reflect the Peranakan architectural heritage found across Singapore.",
-    source: "https://sundaybedding.com/blogs/news/celebrating-home-5-design-tips-singapore-heritage-architecture",
-    sourceLabel: "Photo source"
+    source: "https://commons.wikimedia.org/wiki/File:Singapore_Skyline_2019-10.jpg",
+    sourceLabel: "Unwicked · CC BY-SA 4.0"
   },
   Vancouver: {
     country: "Canada",
