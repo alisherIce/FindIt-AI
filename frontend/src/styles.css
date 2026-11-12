@@ -910,3 +910,14 @@ button:focus-visible, a:focus-visible, select:focus-visible {
 .hotspot-item-row{display:flex;align-items:center;gap:7px;padding:8px 0;border-bottom:1px solid #f0f3f6;color:#52677b;font-size:10px}
 .hotspot-item-row>span:nth-child(2){flex:1}.hotspot-item-dot{width:6px;height:6px;flex:none;border-radius:50%;background:#2a83c4}
 .hotspot-item-row b{font-size:8px;text-transform:uppercase;letter-spacing:.4px}.hotspot-item-row b.is-lost{color:#bf693a}.hotspot-item-row b.is-found{color:#26825b}
+
+
+/* Country-specific cultural photography in the global hotspot panel */
+.hotspot-culture{margin:0 0 17px;overflow:hidden;border:1px solid #e5ebf1;border-radius:12px;background:#f8fafc}
+.hotspot-culture>img{display:block;width:100%;height:155px;object-fit:cover;background:#e7edf3}
+.hotspot-culture-copy{padding:13px 14px 14px}
+.hotspot-culture-copy>span{font-size:8px;font-weight:900;letter-spacing:1px;color:#2878bd;text-transform:uppercase}
+.hotspot-culture-copy h5{margin:6px 0;color:#203b56;font:800 15px 'Manrope',sans-serif}
+.hotspot-culture-copy p{margin:0;color:#6f8091;font-size:10px;line-height:1.65}
+.hotspot-culture-copy a{display:inline-block;margin-top:9px;color:#2878bd;font-size:9px;font-weight:700;text-decoration:none}
+.hotspot-culture-copy a:hover{text-decoration:underline}
