@@ -44,6 +44,7 @@ type Item = {
   location: string;
   description: string;
   image_filename: string;
+  image_url?: string;
   status: string;
   owner_id: string | null;
   created_at: string;
@@ -262,18 +263,19 @@ const DEMO_SESSION_KEY = "findit_demo_session";
 
 function createDemoItems(): Item[] {
   const now = Date.now();
-  const samples: Array<Pick<Item, "item_type" | "title" | "category" | "campus" | "location" | "description">> = [
-    { item_type: "found", title: "Black leather wallet", category: "Personal items", campus: "Gachon University", location: "Central Library, 1st floor", description: "Found near the study tables. Owner can identify the card holder inside." },
-    { item_type: "found", title: "Silver wireless earbuds case", category: "Electronics", campus: "Gachon University", location: "Engineering Building", description: "Small silver charging case handed in after class." },
-    { item_type: "lost", title: "Blue student umbrella", category: "Personal items", campus: "Gachon University", location: "Global Campus bus stop", description: "Foldable blue umbrella with a black wrist strap." },
-    { item_type: "found", title: "Student ID card holder", category: "Documents", campus: "Gachon University", location: "Student Union, ground floor", description: "Clear card holder found beside the cafeteria." },
-    { item_type: "lost", title: "Black laptop sleeve", category: "Electronics", campus: "Gachon University", location: "IT Building, room 204", description: "13-inch black laptop sleeve with a small fabric label." },
-    { item_type: "found", title: "Silver key ring", category: "Keys", campus: "Gachon University", location: "Main Gate", description: "Two keys on a plain silver ring." }
+  const samples: Array<Pick<Item, "item_type" | "title" | "category" | "campus" | "location" | "description" | "image_url">> = [
+    { item_type: "found", title: "Black leather wallet", category: "Personal items", campus: "Gachon University", location: "Central Library, 1st floor", description: "Found near the study tables. Owner can identify the card holder inside.", image_url: "https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&w=900&q=85" },
+    { item_type: "found", title: "Silver wireless earbuds case", category: "Electronics", campus: "Gachon University", location: "Engineering Building", description: "Small silver charging case handed in after class.", image_url: "https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?auto=format&fit=crop&w=900&q=85" },
+    { item_type: "lost", title: "Blue student umbrella", category: "Personal items", campus: "Gachon University", location: "Global Campus bus stop", description: "Foldable blue umbrella with a black wrist strap.", image_url: "https://images.unsplash.com/photo-1534274988757-a28bf1a57c17?auto=format&fit=crop&w=900&q=85" },
+    { item_type: "found", title: "Student ID card holder", category: "Documents", campus: "Gachon University", location: "Student Union, ground floor", description: "Clear card holder found beside the cafeteria.", image_url: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&w=900&q=85" },
+    { item_type: "lost", title: "Black laptop sleeve", category: "Electronics", campus: "Gachon University", location: "IT Building, room 204", description: "13-inch black laptop sleeve with a small fabric label.", image_url: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=900&q=85" },
+    { item_type: "found", title: "Silver key ring", category: "Keys", campus: "Gachon University", location: "Main Gate", description: "Two keys on a plain silver ring.", image_url: "https://images.unsplash.com/photo-1582139329536-e7284fece509?auto=format&fit=crop&w=900&q=85" }
   ];
   return samples.map((sample, index) => ({
     ...sample,
     id: `demo-${index + 1}`,
     image_filename: "",
+    image_url: sample.image_url,
     status: "active",
     owner_id: null,
     created_at: new Date(now - index * 86400000).toISOString()
@@ -703,7 +705,8 @@ export default function App() {
                   <article className="item-card" key={item.id}>
                     <div className={item.item_type === "lost" ? "item-visual visual-lost" : "item-visual visual-found"}>
                       <span className={item.item_type === "lost" ? "type-pill type-lost" : "type-pill type-found"}>{item.item_type === "lost" ? "LOST ITEM" : "FOUND ITEM"}</span>
-                      <CategoryIcon size={48} strokeWidth={1.2} />
+                      {item.image_url && <img className="item-photo" src={item.image_url} alt={item.title} loading="lazy" onError={(event)=>{event.currentTarget.style.display="none";}}/>}
+                      <CategoryIcon className="item-fallback-icon" size={48} strokeWidth={1.2} />
                       <span className="visual-corner">{item.category}</span>
                     </div>
                     <div className="item-content">
@@ -774,10 +777,7 @@ export default function App() {
               <div className="world-map-panel">
                 <div className="world-map-topline"><span><span className="map-live-dot"/> GLOBAL DISCOVERY MAP</span><small>26 city hotspots · Approximate locations</small></div>
                 <div className="world-map-canvas">
-                  <svg className="world-map-shapes" viewBox="0 0 1000 480" role="img" aria-label="Stylized world map showing approximate global discovery hotspots">
-                    <path d="M85 105 130 65 205 55 250 82 275 130 250 160 225 177 210 220 180 245 158 215 130 205 118 165 88 145Z M215 250 250 270 267 320 250 375 225 420 205 380 195 330Z M385 105 430 75 485 80 520 105 505 135 470 145 450 180 425 160 405 130Z M455 190 495 205 520 255 505 325 470 390 440 340 430 275Z M520 90 590 55 690 65 760 95 840 90 900 130 875 165 815 175 770 205 710 190 680 225 630 205 590 170 545 165 520 130Z M770 260 825 250 870 275 850 315 800 325 770 295Z"/>
-                    <path d="M320 55 340 42 360 55 350 80Z M900 205 925 195 940 215 925 235Z"/>
-                  </svg>
+                  <img className="world-map-image" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/BlankMap-Equirectangular.svg/960px-BlankMap-Equirectangular.svg.png" alt="Accurate equirectangular world map with country borders" loading="eager"/>
                   {([
                     {city:"Vancouver",x:14,y:31,count:"18"},
                     {city:"New York",x:24,y:37,count:"42"},
