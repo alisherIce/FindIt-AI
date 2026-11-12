@@ -610,6 +610,18 @@ export default function App() {
                 <h4>{activeHotspot}</h4>
                 <p>Illustrative community activity around a major city and travel hub.</p>
                 <div className="hotspot-metrics"><strong>{({"Vancouver":"18","New York":"42","London":"36","Dubai":"21","Seoul":"57","Tokyo":"49","Singapore":"28","Sydney":"16"} as Record<string,string>)[activeHotspot]}</strong><span>sample reports</span></div>
+                <div className="hotspot-item-preview"><span className="eyebrow">ITEMS ON THIS MAP AREA</span>
+                  {(({
+                    "Seoul":[["Black leather wallet","Found"],["Wireless earbuds","Lost"],["Student backpack","Found"]],
+                    "Tokyo":[["Blue cabin suitcase","Found"],["Camera case","Lost"],["Travel passport holder","Lost"]],
+                    "London":[["Silver wristwatch","Found"],["Laptop sleeve","Lost"],["House keys","Found"]],
+                    "New York":[["Smartphone","Lost"],["Gym duffel bag","Found"],["Bicycle","Lost"]],
+                    "Dubai":[["Gold bracelet","Found"],["Carry-on luggage","Lost"],["Car key fob","Lost"]],
+                    "Singapore":[["Tablet","Found"],["Blue umbrella","Lost"],["Transit card holder","Found"]],
+                    "Vancouver":[["Golden retriever","Lost"],["Mountain bike","Found"],["Red scarf","Lost"]],
+                    "Sydney":[["Surfboard","Lost"],["Sunglasses","Found"],["Camera","Lost"]]
+                  } as Record<string,string[][]>)[activeHotspot]||[]).map(([name,status])=><div className="hotspot-item-row" key={name}><span className="hotspot-item-dot"/><span>{name}</span><b className={status==="Lost"?"is-lost":"is-found"}>{status}</b></div>)}
+                </div>
                 <div className="hotspot-city-list">{(["Seoul","Tokyo","London","New York","Dubai","Singapore","Vancouver","Sydney"] as const).map((city)=><button key={city} className={activeHotspot===city?"selected":""} onClick={()=>setActiveHotspot(city)}><MapPin size={14}/>{city}<span>Explore</span></button>)}</div>
                 <small className="hotspot-disclaimer">Concept data only. These are not verified reports or real-time statistics.</small>
               </aside>
