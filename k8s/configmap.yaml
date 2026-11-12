@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: findit-config
-  namespace: findit
-data:
-  HF_HOME: /root/.cache/huggingface
-  PYTHONUNBUFFERED: "1"
