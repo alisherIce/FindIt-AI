@@ -111,6 +111,7 @@ export default function App() {
   const [pickedDate, setPickedDate] = useState("");
   const [heroImageIndex, setHeroImageIndex] = useState(0);
   const [networkCategory, setNetworkCategory] = useState("All");
+  const [activeHotspot, setActiveHotspot] = useState("Seoul");
   const heroImages = [
     "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=2200&q=85",
     "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=2200&q=85",
@@ -582,6 +583,37 @@ export default function App() {
               <div><strong>Worldwide</strong><span>Designed to scale across borders</span></div>
             </div>
             <div className="network-section-title"><div><span className="eyebrow">DISCOVER BY CATEGORY</span><h3>More than everyday lost items.</h3></div><span className="demo-label">CONCEPT SHOWCASE</span></div>
+            <div className="network-map-heading"><div><span className="eyebrow">WORLDWIDE HOTSPOTS</span><h3>See where discoveries happen.</h3><p>Explore illustrative lost-and-found activity hubs across major global cities.</p></div><span className="demo-label">ILLUSTRATIVE MAP · NOT LIVE ACTIVITY</span></div>
+            <div className="network-map-layout">
+              <div className="world-map-panel">
+                <div className="world-map-topline"><span><span className="map-live-dot"/> GLOBAL DISCOVERY MAP</span><small>Sample locations · Approximate city areas</small></div>
+                <div className="world-map-canvas">
+                  <svg className="world-map-shapes" viewBox="0 0 1000 480" role="img" aria-label="Stylized world map showing approximate global discovery hotspots">
+                    <path d="M85 105 130 65 205 55 250 82 275 130 250 160 225 177 210 220 180 245 158 215 130 205 118 165 88 145Z M215 250 250 270 267 320 250 375 225 420 205 380 195 330Z M385 105 430 75 485 80 520 105 505 135 470 145 450 180 425 160 405 130Z M455 190 495 205 520 255 505 325 470 390 440 340 430 275Z M520 90 590 55 690 65 760 95 840 90 900 130 875 165 815 175 770 205 710 190 680 225 630 205 590 170 545 165 520 130Z M770 260 825 250 870 275 850 315 800 325 770 295Z"/>
+                    <path d="M320 55 340 42 360 55 350 80Z M900 205 925 195 940 215 925 235Z"/>
+                  </svg>
+                  {([
+                    {city:"Vancouver",x:14,y:31,count:"18"},
+                    {city:"New York",x:24,y:37,count:"42"},
+                    {city:"London",x:47,y:25,count:"36"},
+                    {city:"Dubai",x:57,y:43,count:"21"},
+                    {city:"Seoul",x:79,y:34,count:"57"},
+                    {city:"Tokyo",x:84,y:42,count:"49"},
+                    {city:"Singapore",x:73,y:64,count:"28"},
+                    {city:"Sydney",x:86,y:79,count:"16"}
+                  ] as const).map((spot)=><button key={spot.city} className={activeHotspot===spot.city?"map-hotspot active":"map-hotspot"} style={{left:spot.x+"%",top:spot.y+"%"}} onClick={()=>setActiveHotspot(spot.city)} aria-label={"Select "+spot.city+" hotspot"}><span className="hotspot-pulse"/><span className="hotspot-count">{spot.count}</span></button>)}
+                  <div className="map-legend"><span><i/> Discovery hotspot</span><span>Numbers are demo counts</span></div>
+                </div>
+              </div>
+              <aside className="hotspot-sidebar">
+                <span className="eyebrow">FEATURED HOTSPOT</span>
+                <h4>{activeHotspot}</h4>
+                <p>Illustrative community activity around a major city and travel hub.</p>
+                <div className="hotspot-metrics"><strong>{({"Vancouver":"18","New York":"42","London":"36","Dubai":"21","Seoul":"57","Tokyo":"49","Singapore":"28","Sydney":"16"} as Record<string,string>)[activeHotspot]}</strong><span>sample reports</span></div>
+                <div className="hotspot-city-list">{(["Seoul","Tokyo","London","New York","Dubai","Singapore","Vancouver","Sydney"] as const).map((city)=><button key={city} className={activeHotspot===city?"selected":""} onClick={()=>setActiveHotspot(city)}><MapPin size={14}/>{city}<span>Explore</span></button>)}</div>
+                <small className="hotspot-disclaimer">Concept data only. These are not verified reports or real-time statistics.</small>
+              </aside>
+            </div>
             <div className="network-category-grid">
               <button className={networkCategory==="All"?"network-category active":"network-category"} onClick={()=>setNetworkCategory("All")}><span className="network-category-icon"><Compass/></span><strong>All discoveries</strong><small>Explore every category</small></button>
               <button className={networkCategory==="Personal items"?"network-category active":"network-category"} onClick={()=>setNetworkCategory("Personal items")}><span className="network-category-icon"><Wallet/></span><strong>Personal items</strong><small>Phones, wallets, keys</small></button>
