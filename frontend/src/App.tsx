@@ -124,7 +124,7 @@ const hotspotCulture: Record<string, { country: string; image: string; alt: stri
     description: "A glimpse of Aboriginal cultural connection in Sydney Harbour Country, alongside one of Australia's best-known waterfront landmarks.",
     source: "https://www.travelpress.com/aat-kings-program-highlights-australia-aboriginal-culture/",
     sourceLabel: "Photo credit: Tourism NSW"
-  }
+  },
   Paris: {
     country: "France", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Tour_Eiffel_Wikimedia_Commons_(cropped).jpg?width=1000",
     alt: "Eiffel Tower in Paris", title: "Parisian urban heritage",
