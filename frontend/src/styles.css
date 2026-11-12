@@ -905,3 +905,8 @@ button:focus-visible, a:focus-visible, select:focus-visible {
 .hotspot-disclaimer{margin-top:auto;padding-top:15px;color:#99a4af;font-size:9px;line-height:1.5}
 @media(max-width:850px){.network-map-layout{grid-template-columns:1fr}.hotspot-sidebar{min-height:auto}.hotspot-disclaimer{margin-top:12px}.world-map-canvas{height:340px}}
 @media(max-width:600px){.network-map-heading{align-items:flex-start;flex-direction:column}.network-map-heading h3{font-size:25px}.world-map-topline{align-items:flex-start;flex-direction:column}.world-map-canvas{height:260px}.map-legend{font-size:8px}.hotspot-city-list{grid-template-columns:1fr 1fr}}
+
+.hotspot-item-preview{margin-top:3px}.hotspot-item-preview>.eyebrow{display:block;margin-bottom:8px;font-size:8px}
+.hotspot-item-row{display:flex;align-items:center;gap:7px;padding:8px 0;border-bottom:1px solid #f0f3f6;color:#52677b;font-size:10px}
+.hotspot-item-row>span:nth-child(2){flex:1}.hotspot-item-dot{width:6px;height:6px;flex:none;border-radius:50%;background:#2a83c4}
+.hotspot-item-row b{font-size:8px;text-transform:uppercase;letter-spacing:.4px}.hotspot-item-row b.is-lost{color:#bf693a}.hotspot-item-row b.is-found{color:#26825b}
