@@ -254,20 +254,35 @@ function formatDate(value: string) {
   return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(date);
 }
 
-async function readError(response: Response) {
-  try {
-    const body = await response.json();
-    const detail = body.detail || body.message;
-    if (Array.isArray(detail)) return detail.map((entry) => entry.msg || "Invalid input").join(" ");
-    return detail || "Something went wrong. Please try again.";
-  } catch {
-    return "Something went wrong. Please try again.";
-  }
+type DemoUser = CurrentUser & { password: string };
+
+const DEMO_ITEMS_KEY = "findit_demo_items";
+const DEMO_USERS_KEY = "findit_demo_users";
+const DEMO_SESSION_KEY = "findit_demo_session";
+
+function createDemoItems(): Item[] {
+  const now = Date.now();
+  const samples: Array<Pick<Item, "item_type" | "title" | "category" | "campus" | "location" | "description">> = [
+    { item_type: "found", title: "Black leather wallet", category: "Personal items", campus: "Gachon University", location: "Central Library, 1st floor", description: "Found near the study tables. Owner can identify the card holder inside." },
+    { item_type: "found", title: "Silver wireless earbuds case", category: "Electronics", campus: "Gachon University", location: "Engineering Building", description: "Small silver charging case handed in after class." },
+    { item_type: "lost", title: "Blue student umbrella", category: "Personal items", campus: "Gachon University", location: "Global Campus bus stop", description: "Foldable blue umbrella with a black wrist strap." },
+    { item_type: "found", title: "Student ID card holder", category: "Documents", campus: "Gachon University", location: "Student Union, ground floor", description: "Clear card holder found beside the cafeteria." },
+    { item_type: "lost", title: "Black laptop sleeve", category: "Electronics", campus: "Gachon University", location: "IT Building, room 204", description: "13-inch black laptop sleeve with a small fabric label." },
+    { item_type: "found", title: "Silver key ring", category: "Keys", campus: "Gachon University", location: "Main Gate", description: "Two keys on a plain silver ring." }
+  ];
+  return samples.map((sample, index) => ({
+    ...sample,
+    id: `demo-${index + 1}`,
+    image_filename: "",
+    status: "active",
+    owner_id: null,
+    created_at: new Date(now - index * 86400000).toISOString()
+  }));
 }
 
 export default function App() {
   const [items, setItems] = useState<Item[]>([]);
-  const [token, setToken] = useState(() => localStorage.getItem("findit_access_token") ?? "");
+  const [token, setToken] = useState(() => localStorage.getItem(DEMO_SESSION_KEY) ?? "");
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
@@ -319,12 +334,14 @@ export default function App() {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch("/api/items?limit=100");
-      if (!response.ok) throw new Error(await readError(response));
-      const data = await response.json();
-      setItems(data.items ?? []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not connect to FindIt AI.");
+      const saved = localStorage.getItem(DEMO_ITEMS_KEY);
+      const storedItems: Item[] = saved ? JSON.parse(saved) : createDemoItems();
+      if (!saved) localStorage.setItem(DEMO_ITEMS_KEY, JSON.stringify(storedItems));
+      setItems(storedItems);
+    } catch {
+      const samples = createDemoItems();
+      setItems(samples);
+      localStorage.setItem(DEMO_ITEMS_KEY, JSON.stringify(samples));
     } finally {
       setLoading(false);
     }
@@ -332,24 +349,14 @@ export default function App() {
 
   useEffect(() => {
     void loadItems();
-  }, []);
-
-  useEffect(() => {
-    if (!token) {
-      setCurrentUser(null);
-      return;
+    const sessionId = localStorage.getItem(DEMO_SESSION_KEY);
+    if (sessionId) {
+      const users: DemoUser[] = JSON.parse(localStorage.getItem(DEMO_USERS_KEY) ?? "[]");
+      const user = users.find((entry) => entry.id === sessionId);
+      if (user) setCurrentUser({ id: user.id, email: user.email });
+      else localStorage.removeItem(DEMO_SESSION_KEY);
     }
-    fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } })
-      .then(async (response) => {
-        if (!response.ok) throw new Error("Session expired");
-        setCurrentUser(await response.json());
-      })
-      .catch(() => {
-        localStorage.removeItem("findit_access_token");
-        setToken("");
-        setCurrentUser(null);
-      });
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     if (!selectedFile) {
@@ -363,7 +370,7 @@ export default function App() {
 
   const filteredItems = useMemo(() => {
     const term = search.trim().toLowerCase();
-    return items.filter((item) => {
+    return items.filter((item) => item.status === "active").filter((item) => {
       const typeMatches = filter === "all" || item.item_type === filter;
       const dateMatches = !pickedDate || new Date(item.created_at).toISOString().slice(0, 10) === pickedDate;
       const textMatches =
@@ -410,34 +417,24 @@ export default function App() {
     setAuthBusy(true);
     setAuthError("");
     try {
+      const users: DemoUser[] = JSON.parse(localStorage.getItem(DEMO_USERS_KEY) ?? "[]");
+      let user = users.find((entry) => entry.email.toLowerCase() === authEmail.trim().toLowerCase());
       if (authMode === "register") {
-        const registration = await fetch("/api/auth/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: authEmail, password: authPassword }),
-        });
-        if (!registration.ok) throw new Error(await readError(registration));
+        if (user) throw new Error("An account with this email already exists. Please sign in.");
+        user = { id: crypto.randomUUID(), email: authEmail.trim(), password: authPassword };
+        users.push(user);
+        localStorage.setItem(DEMO_USERS_KEY, JSON.stringify(users));
+      } else if (!user || user.password !== authPassword) {
+        throw new Error("Email or password is incorrect. Register a demo account first if you are new.");
       }
 
-      const login = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ username: authEmail, password: authPassword }),
-      });
-      if (!login.ok) throw new Error(await readError(login));
-
-      const data = await login.json();
-      localStorage.setItem("findit_access_token", data.access_token);
-      setToken(data.access_token);
-      const profile = await fetch("/api/auth/me", {
-        headers: { Authorization: `Bearer ${data.access_token}` },
-      });
-      if (!profile.ok) throw new Error("Could not load your account.");
-      setCurrentUser(await profile.json());
+      localStorage.setItem(DEMO_SESSION_KEY, user.id);
+      setToken(user.id);
+      setCurrentUser({ id: user.id, email: user.email });
       setShowAuth(false);
       setAuthMode("login");
       setAuthPassword("");
-      setNotice(authMode === "register" ? "Your account is ready." : "Welcome back.");
+      setNotice(authMode === "register" ? "Your demo account is ready on this browser." : "Welcome back.");
       if (pendingReportType) {
         startReport(pendingReportType);
         setPendingReportType(null);
@@ -450,7 +447,7 @@ export default function App() {
   }
 
   function signOut() {
-    localStorage.removeItem("findit_access_token");
+    localStorage.removeItem(DEMO_SESSION_KEY);
     setToken("");
     setCurrentUser(null);
     setNotice("You have signed out.");
@@ -465,23 +462,28 @@ export default function App() {
 
     setSubmitting(true);
     setError("");
-    const payload = new FormData();
-    payload.append("item_type", reportType);
-    payload.append("title", form.title);
-    payload.append("category", form.category);
-    payload.append("campus", form.campus);
-    payload.append("location", form.location);
-    payload.append("description", form.description);
-    payload.append("file", selectedFile);
-
     try {
-      const response = await fetch("/api/items", { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: payload });
-      if (!response.ok) throw new Error(await readError(response));
+      const nextItem: Item = {
+        id: crypto.randomUUID(),
+        item_type: reportType,
+        title: form.title.trim(),
+        category: form.category,
+        campus: form.campus.trim(),
+        location: form.location.trim(),
+        description: form.description.trim(),
+        image_filename: selectedFile.name,
+        status: "active",
+        owner_id: currentUser?.id ?? null,
+        created_at: new Date().toISOString()
+      };
+      const nextItems = [nextItem, ...items];
+      localStorage.setItem(DEMO_ITEMS_KEY, JSON.stringify(nextItems));
+      setItems(nextItems);
       setShowReport(false);
-      setNotice(reportType === "lost" ? "Your lost-item report is live." : "Your found-item report is live.");
-      await loadItems();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not submit your report.");
+      setSelectedFile(null);
+      setNotice("Your report was saved in this browser's demo board.");
+    } catch {
+      setError("Could not save your report. Your browser storage may be full.");
     } finally {
       setSubmitting(false);
     }
@@ -491,28 +493,29 @@ export default function App() {
     setMatchesFor(item);
     setMatches([]);
     setLoadingMatches(true);
-    try {
-      const response = await fetch(`/api/items/${item.id}/matches?limit=5`);
-      if (!response.ok) throw new Error(await readError(response));
-      const data = await response.json();
-      setMatches(data.matches ?? []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not find matches.");
-      setMatchesFor(null);
-    } finally {
-      setLoadingMatches(false);
-    }
+    const terms = (value: string) => new Set(value.toLowerCase().split(/[^a-z0-9]+/).filter((word) => word.length > 2));
+    const sourceTerms = terms(`${item.title} ${item.category} ${item.description}`);
+    const suggestions = items
+      .filter((candidate) => candidate.id !== item.id && candidate.item_type !== item.item_type && candidate.status === "active")
+      .map((candidate) => {
+        const candidateTerms = terms(`${candidate.title} ${candidate.category} ${candidate.description}`);
+        const overlap = [...sourceTerms].filter((word) => candidateTerms.has(word)).length;
+        const categoryBonus = candidate.category.toLowerCase() === item.category.toLowerCase() ? 0.35 : 0;
+        const score = Math.min(0.98, 0.25 + overlap * 0.16 + categoryBonus);
+        return { ...candidate, visual_similarity: score };
+      })
+      .sort((a, b) => b.visual_similarity - a.visual_similarity)
+      .slice(0, 5);
+    setMatches(suggestions);
+    setLoadingMatches(false);
   }
 
   async function resolveItem(item: Item) {
-    try {
-      const response = await fetch(`/api/items/${item.id}/resolve`, { method: "PATCH", headers: { Authorization: `Bearer ${token}` } });
-      if (!response.ok) throw new Error(await readError(response));
-      setNotice("Report marked as resolved.");
-      await loadItems();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not update this report.");
-    }
+    if (item.owner_id !== currentUser?.id) return;
+    const nextItems = items.map((entry) => entry.id === item.id ? { ...entry, status: "resolved" } : entry);
+    localStorage.setItem(DEMO_ITEMS_KEY, JSON.stringify(nextItems));
+    setItems(nextItems);
+    setNotice("Your report was marked as resolved.");
   }
 
   return (
@@ -551,7 +554,7 @@ export default function App() {
             <div className="eyebrow"><Sparkles size={14} /> SMART CAMPUS LOST & FOUND</div>
             <h1>Lost something?<br /><span>Let’s bring it back.</span></h1>
             <p className="hero-description">
-              Search thousands of lost-and-found reports or let our visual AI help reconnect you with what matters.
+              Search community reports and compare possible matches in this interactive browser demo.
             </p>
             <div className="hero-search">
               <label className="hero-country"><Globe2 size={18} /><select id="country-select" value={country} onChange={(event) => setCountry(event.target.value)} aria-label="Choose country"><option value="South Korea">🇰🇷  South Korea</option><option value="United States">🇺🇸  United States</option><option value="United Kingdom">🇬🇧  United Kingdom</option><option value="Uzbekistan">🇺🇿  Uzbekistan</option><option value="Japan">🇯🇵  Japan</option><option value="Canada">🇨🇦  Canada</option><option value="Australia">🇦🇺  Australia</option><option value="Germany">🇩🇪  Germany</option><option value="France">🇫🇷  France</option><option value="Italy">🇮🇹  Italy</option><option value="Spain">🇪🇸  Spain</option><option value="Netherlands">🇳🇱  Netherlands</option><option value="Switzerland">🇨🇭  Switzerland</option><option value="Sweden">🇸🇪  Sweden</option><option value="Norway">🇳🇴  Norway</option><option value="Singapore">🇸🇬  Singapore</option><option value="Malaysia">🇲🇾  Malaysia</option><option value="Türkiye">🇹🇷  Türkiye</option><option value="United Arab Emirates">🇦🇪  United Arab Emirates</option><option value="India">🇮🇳  India</option><option value="China">🇨🇳  China</option><option value="Brazil">🇧🇷  Brazil</option><option value="Mexico">🇲🇽  Mexico</option><option value="New Zealand">🇳🇿  New Zealand</option><option value="All countries">🌐  All countries</option></select><ChevronDown size={14} /></label>
@@ -577,7 +580,7 @@ export default function App() {
                 <button key={term} onClick={() => { setSearch(term); setFilter("found"); setShowResultsFilters(true); document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" }); }}>{term}</button>
               ))}
             </div>
-            <div className="trust-line"><ShieldCheck size={16} /> Your item photos are processed privately.</div>
+            <div className="trust-line"><ShieldCheck size={16} /> Demo reports stay in this browser and are not uploaded.</div>
           </div>
           <div className="hero-art" aria-label="Illustration of a found item being returned">
             <div className="art-orbit orbit-one" />
@@ -636,7 +639,7 @@ export default function App() {
           <div className="stat-block"><span className="stat-icon stat-purple"><Package size={18} /></span><div><strong>{items.length}</strong><span>Active reports</span></div></div>
           <div className="stat-block"><span className="stat-icon stat-orange"><Search size={18} /></span><div><strong>{lostCount}</strong><span>Items lost</span></div></div>
           <div className="stat-block"><span className="stat-icon stat-green"><Check size={18} /></span><div><strong>{foundCount}</strong><span>Items found</span></div></div>
-          <div className="stats-note"><Sparkles size={16} /> Powered by visual AI matching</div>
+          <div className="stats-note"><Sparkles size={16} /> Smart match suggestions</div>
         </section>
 
         <section className="list-section" id="community-board">
@@ -654,7 +657,7 @@ export default function App() {
             <div>
               <div className="eyebrow">SEARCH THE FOUND ITEMS</div>
               <h2>Found items you may be looking for</h2>
-              <p>Search registered found-item reports and check for a possible match.</p>
+              <p>Search sample and locally saved reports. Match suggestions are based on text and category, not a live AI service.</p>
             </div>
             
           </div>
