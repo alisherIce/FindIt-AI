@@ -754,10 +754,10 @@ export default function App() {
               <div><strong>Worldwide</strong><span>Designed to scale across borders</span></div>
             </div>
             <div className="network-section-title"><div><span className="eyebrow">DISCOVER BY CATEGORY</span><h3>More than everyday lost items.</h3></div><span className="demo-label">CONCEPT SHOWCASE</span></div>
-            <div className="network-map-heading"><div><span className="eyebrow">WORLDWIDE HOTSPOTS</span><h3>See where discoveries happen.</h3><p>Explore illustrative lost-and-found activity hubs across major global cities.</p></div><span className="demo-label">ILLUSTRATIVE MAP · NOT LIVE ACTIVITY</span></div>
+            <div className="network-map-heading"><div><span className="eyebrow">WORLDWIDE HOTSPOTS</span><h3>See where discoveries happen.</h3><p>Explore 24 illustrative lost-and-found hotspots, each paired with a local cultural photo story.</p></div><span className="demo-label">ILLUSTRATIVE MAP · NOT LIVE ACTIVITY</span></div>
             <div className="network-map-layout">
               <div className="world-map-panel">
-                <div className="world-map-topline"><span><span className="map-live-dot"/> GLOBAL DISCOVERY MAP</span><small>Sample locations · Approximate city areas</small></div>
+                <div className="world-map-topline"><span><span className="map-live-dot"/> GLOBAL DISCOVERY MAP</span><small>24 city hotspots · Approximate locations</small></div>
                 <div className="world-map-canvas">
                   <svg className="world-map-shapes" viewBox="0 0 1000 480" role="img" aria-label="Stylized world map showing approximate global discovery hotspots">
                     <path d="M85 105 130 65 205 55 250 82 275 130 250 160 225 177 210 220 180 245 158 215 130 205 118 165 88 145Z M215 250 250 270 267 320 250 375 225 420 205 380 195 330Z M385 105 430 75 485 80 520 105 505 135 470 145 450 180 425 160 405 130Z M455 190 495 205 520 255 505 325 470 390 440 340 430 275Z M520 90 590 55 690 65 760 95 840 90 900 130 875 165 815 175 770 205 710 190 680 225 630 205 590 170 545 165 520 130Z M770 260 825 250 870 275 850 315 800 325 770 295Z"/>
