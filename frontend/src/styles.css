@@ -921,3 +921,12 @@ button:focus-visible, a:focus-visible, select:focus-visible {
 .hotspot-culture-copy p{margin:0;color:#6f8091;font-size:10px;line-height:1.65}
 .hotspot-culture-copy a{display:inline-block;margin-top:9px;color:#2878bd;font-size:9px;font-weight:700;text-decoration:none}
 .hotspot-culture-copy a:hover{text-decoration:underline}
+
+
+/* Expanded 24-city hotspot directory */
+.hotspot-city-list{max-height:260px;overflow-y:auto;padding-right:4px;overscroll-behavior:contain}
+.hotspot-city-list::-webkit-scrollbar{width:5px}
+.hotspot-city-list::-webkit-scrollbar-thumb{border-radius:8px;background:#cbd8e4}
+.hotspot-city-list button{min-width:0}
+.world-map-canvas{min-height:360px}
+@media(max-width:600px){.world-map-canvas{min-height:310px}.hotspot-city-list{max-height:220px}}
