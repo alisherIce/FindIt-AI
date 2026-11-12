@@ -52,6 +52,81 @@ type Item = {
 type Match = Item & { visual_similarity: number };
 type CurrentUser = { id: string; email: string };
 
+const hotspotCulture: Record<string, { country: string; image: string; alt: string; title: string; description: string; source: string; sourceLabel: string }> = {
+  Seoul: {
+    country: "South Korea",
+    image: "https://7d9e88a8-f178-4098-bea5-48d960920605.selcdn.net/3802a836-9319-46ce-8731-1d17f9f146be/",
+    alt: "Traditional Korean hanok houses along a narrow street in Seoul",
+    title: "Hanok heritage, modern Seoul",
+    description: "Explore the tiled roofs and wooden architecture of Bukchon and Seochon, where historic neighbourhoods sit beside the modern capital.",
+    source: "https://english.seoul.go.kr/seochon-village-in-seoul/",
+    sourceLabel: "Seoul Metropolitan Government"
+  },
+  Tokyo: {
+    country: "Japan",
+    image: "https://chloestravelogue.com/things-to-do-asakusa-tokyo/hanayashiki-edo-shopping-street/",
+    alt: "Traditional shopfronts and visitors in Tokyo's Asakusa district",
+    title: "Old-town Asakusa",
+    description: "Discover the lanterns, noren curtains and traditional shopfronts of Asakusa, a historic district in the heart of Tokyo.",
+    source: "https://chloestravelogue.com/things-to-do-asakusa-tokyo/",
+    sourceLabel: "Asakusa photo story"
+  },
+  London: {
+    country: "United Kingdom",
+    image: "https://www.dslrphotographycourses.com/images/uploads/street-photography-course-London-21.jpg",
+    alt: "Street scene in London's Brick Lane neighbourhood",
+    title: "Brick Lane street culture",
+    description: "A snapshot of East London's creative street life, layered with independent shops, public art and the neighbourhood's many cultural influences.",
+    source: "https://www.dslrphotographycourses.com/photography-course-reviews/street-photography-course-london-30-08-2020",
+    sourceLabel: "Photo source"
+  },
+  "New York": {
+    country: "United States",
+    image: "https://cdn.sanity.io/images/mkg24y51/production/249efb7fa8d66f838d2d6440f3fd1323c1005ddf-1000x666.webp/es-seguro-viajar-nueva-york-5.webp",
+    alt: "Lower Manhattan street lined with historic brick buildings",
+    title: "Lower Manhattan neighbourhoods",
+    description: "Historic tenement buildings, busy sidewalks and dense city blocks reflect the everyday street life of New York.",
+    source: "https://www.iatiseguros.com/blog/es-seguro-viajar-a-nueva-york/",
+    sourceLabel: "Photo source"
+  },
+  Dubai: {
+    country: "United Arab Emirates",
+    image: "https://www.middleeastarchitect.com/cloud/2022/01/10/es8gr8Fy-Al-Fahidi-shutterstock_1906345519-1200x798.jpg",
+    alt: "Traditional wind-tower buildings in Dubai's Al Fahidi historic neighbourhood",
+    title: "Al Fahidi heritage quarter",
+    description: "The historic lanes and barjeel wind towers of Al Fahidi show how traditional Emirati architecture responded to the desert climate.",
+    source: "https://www.middleeastarchitect.com/insight/al-fahidi-rennovation-announced",
+    sourceLabel: "Photo source"
+  },
+  Singapore: {
+    country: "Singapore",
+    image: "https://i.shgcdn.com/60f01ebf-25cf-47c7-a394-4328713ce085/-/format/auto/-/preview/3000x3000/-/quality/lighter/",
+    alt: "Colorful Peranakan heritage shophouses in Singapore",
+    title: "Peranakan heritage streets",
+    description: "Pastel shophouses, ornate tiles and decorative façades reflect the Peranakan architectural heritage found across Singapore.",
+    source: "https://sundaybedding.com/blogs/news/celebrating-home-5-design-tips-singapore-heritage-architecture",
+    sourceLabel: "Photo source"
+  },
+  Vancouver: {
+    country: "Canada",
+    image: "https://travel.destinationcanada.com/_next/image?q=75&url=https%3A%2F%2Fadmin.destinationcanada.com%2Fsites%2Fdefault%2Ffiles%2F2025-12%2Fimg_shizentai_select_vancouver.jpg&w=1920",
+    alt: "Vancouver skyline beside the green forest of Stanley Park",
+    title: "Pacific city and forest",
+    description: "Vancouver's West Coast identity is shaped by the meeting of the Pacific waterfront, city neighbourhoods and the forests around Stanley Park.",
+    source: "https://travel.destinationcanada.com/ja-jp/oku/shizentai",
+    sourceLabel: "Destination Canada"
+  },
+  Sydney: {
+    country: "Australia",
+    image: "https://www.travelpress.com/wp-content/uploads/2023/10/Dreamtime-Experience-with-Aunty-Margret-Campbell-Sydney-Photo-Credit-Tourism-NSW_1024x768-1.jpg",
+    alt: "Aboriginal cultural educator at Sydney Harbour",
+    title: "First Nations culture at the harbour",
+    description: "A glimpse of Aboriginal cultural connection in Sydney Harbour Country, alongside one of Australia's best-known waterfront landmarks.",
+    source: "https://www.travelpress.com/aat-kings-program-highlights-australia-aboriginal-culture/",
+    sourceLabel: "Photo credit: Tourism NSW"
+  }
+};
+
 const categoryIcons: Record<string, typeof Package> = {
   electronics: Laptop,
   accessories: Wallet,
@@ -610,6 +685,15 @@ export default function App() {
                 <h4>{activeHotspot}</h4>
                 <p>Illustrative community activity around a major city and travel hub.</p>
                 <div className="hotspot-metrics"><strong>{({"Vancouver":"18","New York":"42","London":"36","Dubai":"21","Seoul":"57","Tokyo":"49","Singapore":"28","Sydney":"16"} as Record<string,string>)[activeHotspot]}</strong><span>sample reports</span></div>
+                <div className="hotspot-culture">
+                  <img src={hotspotCulture[activeHotspot].image} alt={hotspotCulture[activeHotspot].alt} loading="lazy"/>
+                  <div className="hotspot-culture-copy">
+                    <span>{hotspotCulture[activeHotspot].country} · LOCAL CULTURE</span>
+                    <h5>{hotspotCulture[activeHotspot].title}</h5>
+                    <p>{hotspotCulture[activeHotspot].description}</p>
+                    <a href={hotspotCulture[activeHotspot].source} target="_blank" rel="noreferrer">Photo & story: {hotspotCulture[activeHotspot].sourceLabel} ↗</a>
+                  </div>
+                </div>
                 <div className="hotspot-item-preview"><span className="eyebrow">ITEMS ON THIS MAP AREA</span>
                   {(({
                     "Seoul":[["Black leather wallet","Found"],["Wireless earbuds","Lost"],["Student backpack","Found"]],
