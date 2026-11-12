@@ -930,3 +930,19 @@ button:focus-visible, a:focus-visible, select:focus-visible {
 .hotspot-city-list button{min-width:0}
 .world-map-canvas{min-height:360px}
 @media(max-width:600px){.world-map-canvas{min-height:310px}.hotspot-city-list{max-height:220px}}
+
+
+/* Photo-first campus demo cards */
+.item-visual { position:relative; overflow:hidden; }
+.item-photo { position:absolute; inset:0; width:100%; height:100%; display:block; object-fit:cover; z-index:0; }
+.item-visual::after { content:""; position:absolute; inset:0; z-index:1; pointer-events:none; background:linear-gradient(180deg,rgba(9,24,38,.18),transparent 45%,rgba(9,24,38,.10)); }
+.item-visual .type-pill,.item-visual .visual-corner { z-index:2; }
+.item-fallback-icon { position:relative; z-index:0; color:#71808a; }
+.item-visual:has(.item-photo) .item-fallback-icon { display:none; }
+
+/* Real equirectangular world map: pin positions use longitude and latitude. */
+.world-map-canvas { height:auto !important; min-height:0 !important; aspect-ratio:2 / 1; background:#eaf3fb; }
+.world-map-image { position:absolute; inset:0; width:100%; height:100%; object-fit:fill; display:block; opacity:.78; }
+.world-map-shapes { display:none; }
+@media(max-width:850px){.world-map-canvas{height:auto !important;min-height:0 !important;aspect-ratio:2 / 1}}
+@media(max-width:600px){.world-map-canvas{height:auto !important;min-height:0 !important;aspect-ratio:2 / 1}}
