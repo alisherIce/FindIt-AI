@@ -2,6 +2,10 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   ArrowRight,
   ArrowUpRight,
+  CarFront,
+  PawPrint,
+  Plane,
+  Watch,
   BadgeCheck,
   BookOpen,
   Building2,
@@ -106,6 +110,7 @@ export default function App() {
   const [showResultsFilters, setShowResultsFilters] = useState(false);
   const [pickedDate, setPickedDate] = useState("");
   const [heroImageIndex, setHeroImageIndex] = useState(0);
+  const [networkCategory, setNetworkCategory] = useState("All");
   const heroImages = [
     "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=2200&q=85",
     "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=2200&q=85",
@@ -561,16 +566,55 @@ export default function App() {
           </div>
         </section>
 
-        <section className="organization-section" id="organizations">
-          <div className="organization-icon"><Building2 size={25} /></div>
-          <div className="organization-copy">
-            <span className="eyebrow">FOR UNIVERSITIES & ORGANIZATIONS</span>
-            <h2>Make lost & found easier for your whole community.</h2>
-            <p>Bring reports, searchable item records and AI-assisted matching into one clear workflow for your campus, event or venue.</p>
-          </div>
-          <div className="organization-actions">
-            <button className="button button-dark" onClick={() => document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" })}>Explore the platform <ArrowRight size={16} /></button>
-            <span>Built to grow beyond one campus.</span>
+        <section className="global-network" id="organizations">
+          <div className="global-network-inner">
+            <div className="global-network-heading">
+              <div>
+                <span className="eyebrow"><Globe2 size={14}/> FINDIT AI · GLOBAL NETWORK</span>
+                <h2>Lost somewhere.<br/><span>Found anywhere.</span></h2>
+                <p>One discovery network for the things, vehicles and companions people are searching for — across campuses, cities and travel hubs.</p>
+              </div>
+              <div className="network-orbit"><Globe2 size={72}/><span className="orbit-pin pin-one"><MapPin size={16}/></span><span className="orbit-pin pin-two"><MapPin size={16}/></span><span className="orbit-pin pin-three"><MapPin size={16}/></span></div>
+            </div>
+            <div className="network-stats">
+              <div><strong>01</strong><span>One connected platform</span></div>
+              <div><strong>06</strong><span>Discovery categories</span></div>
+              <div><strong>Worldwide</strong><span>Designed to scale across borders</span></div>
+            </div>
+            <div className="network-section-title"><div><span className="eyebrow">DISCOVER BY CATEGORY</span><h3>More than everyday lost items.</h3></div><span className="demo-label">CONCEPT SHOWCASE</span></div>
+            <div className="network-category-grid">
+              <button className={networkCategory==="All"?"network-category active":"network-category"} onClick={()=>setNetworkCategory("All")}><span className="network-category-icon"><Compass/></span><strong>All discoveries</strong><small>Explore every category</small></button>
+              <button className={networkCategory==="Personal items"?"network-category active":"network-category"} onClick={()=>setNetworkCategory("Personal items")}><span className="network-category-icon"><Wallet/></span><strong>Personal items</strong><small>Phones, wallets, keys</small></button>
+              <button className={networkCategory==="Travel"?"network-category active":"network-category"} onClick={()=>setNetworkCategory("Travel")}><span className="network-category-icon"><Plane/></span><strong>Travel & luggage</strong><small>Bags and travel gear</small></button>
+              <button className={networkCategory==="Vehicles"?"network-category active":"network-category"} onClick={()=>setNetworkCategory("Vehicles")}><span className="network-category-icon"><CarFront/></span><strong>Vehicles</strong><small>Cars, bikes, scooters</small></button>
+              <button className={networkCategory==="Valuables"?"network-category active":"network-category"} onClick={()=>setNetworkCategory("Valuables")}><span className="network-category-icon"><Watch/></span><strong>Valuables</strong><small>Watches and jewelry</small></button>
+              <button className={networkCategory==="Pets"?"network-category active":"network-category"} onClick={()=>setNetworkCategory("Pets")}><span className="network-category-icon"><PawPrint/></span><strong>Pets</strong><small>Lost and found animals</small></button>
+            </div>
+            <div className="network-section-title network-listing-title"><div><span className="eyebrow">GLOBAL DISCOVERY PREVIEW</span><h3>{networkCategory==="All"?"Explore what people may be searching for.":networkCategory+" discovery"}</h3><p>Illustrative sample listings to demonstrate the future global experience.</p></div><span className="demo-label">DEMO DATA · NOT LIVE REPORTS</span></div>
+            <div className="network-listing-grid">
+              {( [
+                {category:"Personal items",title:"Black leather wallet",place:"Seoul, South Korea",status:"Found",image:"photo-1627123424574-724758594e93"},
+                {category:"Travel",title:"Blue cabin suitcase",place:"Tokyo, Japan",status:"Found",image:"photo-1565026057447-bc90a3dceb87"},
+                {category:"Vehicles",title:"White city bicycle",place:"Amsterdam, Netherlands",status:"Lost",image:"photo-1485965120184-e220f721d03e"},
+                {category:"Valuables",title:"Silver wristwatch",place:"London, United Kingdom",status:"Found",image:"photo-1523275335684-37898b6baf30"},
+                {category:"Pets",title:"Golden retriever",place:"Vancouver, Canada",status:"Lost",image:"photo-1552053831-71594a27632d"},
+                {category:"Vehicles",title:"Blue compact car",place:"Los Angeles, United States",status:"Lost",image:"photo-1492144534655-ae79c964c9d7"}
+              ] as const).filter((item)=>networkCategory==="All"||item.category===networkCategory).map((item)=>(
+                <article className="network-listing-card" key={item.title}>
+                  <div className="network-listing-image"><img src={`https://images.unsplash.com/${item.image}?auto=format&fit=crop&w=800&q=82`} alt={item.title}/><span className={item.status==="Lost"?"network-status lost":"network-status"}>{item.status}</span><span className="network-demo-stamp">DEMO</span></div>
+                  <div className="network-listing-copy"><span>{item.category}</span><h4>{item.title}</h4><p><MapPin size={14}/>{item.place}</p></div>
+                </article>
+              ))}
+            </div>
+            <div className="network-safety-note"><ShieldCheck size={19}/><p><strong>Safety comes first.</strong> Public previews never expose private contact details or precise locations. Vehicle recovery and pet reunification should involve verified owners and appropriate local authorities.</p></div>
+            <div className="network-org-heading"><span className="eyebrow">BUILT FOR COMMUNITIES & ORGANIZATIONS</span><h3>Connect the places where things get lost.</h3><p>FindIt AI can support different types of organizations as the network grows.</p></div>
+            <div className="network-org-grid">
+              <div><GraduationCap/><strong>Universities</strong><span>Campus offices, libraries and student services</span></div>
+              <div><Plane/><strong>Airports & travel</strong><span>Terminals, airlines and transport hubs</span></div>
+              <div><Building2/><strong>Venues & retail</strong><span>Malls, hotels, events and public spaces</span></div>
+              <div><ShieldCheck/><strong>Verified authorities</strong><span>Safe referral pathways for sensitive cases</span></div>
+            </div>
+            <div className="network-bottom-cta"><div><span className="eyebrow">START WITH YOUR COMMUNITY</span><h3>Every successful reunion starts with a report.</h3><p>Search existing reports or contribute a lost or found item to your community.</p></div><button className="button button-primary" onClick={()=>document.getElementById("community-board")?.scrollIntoView({behavior:"smooth"})}>Explore item reports <ArrowRight size={17}/></button></div>
           </div>
         </section>
 
