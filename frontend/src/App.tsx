@@ -125,6 +125,102 @@ const hotspotCulture: Record<string, { country: string; image: string; alt: stri
     source: "https://www.travelpress.com/aat-kings-program-highlights-australia-aboriginal-culture/",
     sourceLabel: "Photo credit: Tourism NSW"
   }
+  Paris: {
+    country: "France", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Tour_Eiffel_Wikimedia_Commons_(cropped).jpg?width=1000",
+    alt: "Eiffel Tower in Paris", title: "Parisian urban heritage",
+    description: "Explore the city of boulevards, neighbourhood cafés, museums and the Eiffel Tower, a landmark from the 1889 World's Fair.",
+    source: "https://commons.wikimedia.org/wiki/File:Tour_Eiffel_Wikimedia_Commons_(cropped).jpg", sourceLabel: "Benh LIEU SONG · Public domain"
+  },
+  Berlin: {
+    country: "Germany", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Brandenburger_Tor_abends.jpg?width=1000",
+    alt: "Brandenburg Gate in Berlin at dusk", title: "Berlin's layered history",
+    description: "The Brandenburg Gate stands at the heart of a city shaped by Prussian history, division, reunification and contemporary creative life.",
+    source: "https://commons.wikimedia.org/wiki/File:Brandenburger_Tor_abends.jpg", sourceLabel: "Thomas Wolf · CC BY-SA 3.0"
+  },
+  Bangkok: {
+    country: "Thailand", image: "https://commons.wikimedia.org/wiki/Special:FilePath/เจดีย์ประธานทรงปรางค์วัดอรุณ2.jpg?width=1000",
+    alt: "Wat Arun temple in Bangkok", title: "Riverside temple traditions",
+    description: "Wat Arun's decorated prang rises beside the Chao Phraya River, reflecting Thailand's Buddhist artistic and architectural heritage.",
+    source: "https://commons.wikimedia.org/wiki/File:เจดีย์ประธานทรงปรางค์วัดอรุณ2.jpg", sourceLabel: "Mastertongapollo · CC BY-SA 4.0"
+  },
+  Beijing: {
+    country: "China", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Temple_of_Heaven_20160323_01.jpg?width=1000",
+    alt: "Temple of Heaven in Beijing", title: "Imperial Beijing",
+    description: "The Temple of Heaven's ceremonial architecture and landscaped grounds connect the city to centuries of Chinese imperial ritual and craftsmanship.",
+    source: "https://commons.wikimedia.org/wiki/File:Temple_of_Heaven_20160323_01.jpg", sourceLabel: "Shujianyang · CC BY-SA 4.0"
+  },
+  "Buenos Aires": {
+    country: "Argentina", image: "https://mintropolis.io/assets/cities/buenos-aires-v1.jpg",
+    alt: "Obelisk of Buenos Aires at night", title: "Buenos Aires city life",
+    description: "The Obelisk anchors a city known for tango, grand avenues, theatres, football culture and a strong café tradition.",
+    source: "https://commons.wikimedia.org/wiki/File:Buenos_Aires_(20234294752).jpg", sourceLabel: "Rodrigo Paredes · CC BY 2.0"
+  },
+  Cairo: {
+    country: "Egypt", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Cairo_Tower_(14795997855).jpg?width=1000",
+    alt: "Cairo Tower above the city", title: "Cairo across eras",
+    description: "Cairo brings together historic Islamic architecture, lively markets, contemporary neighbourhoods and landmarks along the Nile.",
+    source: "https://commons.wikimedia.org/wiki/File:Cairo_Tower_(14795997855).jpg", sourceLabel: "Jorge Láscar · CC BY 2.0"
+  },
+  "Cape Town": {
+    country: "South Africa", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Table_Mountain_DanieVDM.jpg?width=1000",
+    alt: "Table Mountain overlooking Cape Town", title: "Cape Town's natural landmark",
+    description: "Table Mountain frames a city shaped by diverse communities, coastal landscapes, layered histories and a vibrant arts and food scene.",
+    source: "https://commons.wikimedia.org/wiki/File:Table_Mountain_DanieVDM.jpg", sourceLabel: "Danie van der Merwe · CC BY 2.0"
+  },
+  Istanbul: {
+    country: "Türkiye", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Hagia_Sophia_(228968325).jpeg?width=1000",
+    alt: "Hagia Sophia in Istanbul", title: "A city between continents",
+    description: "Hagia Sophia reflects Istanbul's Byzantine and Ottoman histories, while the city's markets, ferries and neighbourhoods connect Europe and Asia.",
+    source: "https://commons.wikimedia.org/wiki/File:Hagia_Sophia_(228968325).jpeg", sourceLabel: "Adli Wahid · CC BY-SA 3.0"
+  },
+  Lisbon: {
+    country: "Portugal", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Belém_Tower_in_Lisbon,_Portugal.jpg?width=1000",
+    alt: "Belém Tower in Lisbon", title: "Lisbon's maritime heritage",
+    description: "Belém Tower recalls Portugal's seafaring history; tiled façades, hilltop streets and fado music are part of the city's living identity.",
+    source: "https://commons.wikimedia.org/wiki/File:Bel%C3%A9m_Tower_in_Lisbon,_Portugal.jpg", sourceLabel: "Lisbon Photoshoots · CC BY-SA 4.0"
+  },
+  Melbourne: {
+    country: "Australia", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Flinders_Station_and_trams.jpg?width=1000",
+    alt: "Flinders Street Station and trams in Melbourne", title: "Melbourne's laneways and trams",
+    description: "The city's tram network, historic Flinders Street Station, laneway art and café culture shape everyday Melbourne life.",
+    source: "https://commons.wikimedia.org/wiki/File:Flinders_Station_and_trams.jpg", sourceLabel: "Philip Mallis · CC BY-SA 3.0"
+  },
+  "Mexico City": {
+    country: "Mexico", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Bellas_Artes_01.jpg?width=1000",
+    alt: "Palacio de Bellas Artes in Mexico City", title: "Art and tradition in Mexico City",
+    description: "Palacio de Bellas Artes is a landmark for Mexican music, dance, visual arts and the city's rich architectural story.",
+    source: "https://commons.wikimedia.org/wiki/File:Bellas_Artes_01.jpg", sourceLabel: "Xavier Quetzalcoatl Contreras Castillo · CC BY-SA 3.0"
+  },
+  Mumbai: {
+    country: "India", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Gateway_Of_India.JPG?width=1000",
+    alt: "Gateway of India in Mumbai", title: "Mumbai's harbour city",
+    description: "The Gateway of India looks over Mumbai's waterfront, a city known for many languages, film, festivals, markets and diverse food traditions.",
+    source: "https://commons.wikimedia.org/wiki/File:Gateway_Of_India.JPG", sourceLabel: "Sujit Kumar · CC BY-SA 4.0"
+  },
+  Nairobi: {
+    country: "Kenya", image: "https://commons.wikimedia.org/wiki/Special:FilePath/KICC_nairobi_kenya.jpg?width=1000",
+    alt: "Kenyatta International Convention Centre in Nairobi", title: "Nairobi's urban rhythm",
+    description: "Nairobi is a major East African hub where contemporary city life, creative communities and the region's varied cultural traditions meet.",
+    source: "https://commons.wikimedia.org/wiki/File:KICC_nairobi_kenya.jpg", sourceLabel: "Original uploader Mkimemia · CC BY-SA 3.0"
+  },
+  "São Paulo": {
+    country: "Brazil", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Catedral_da_Sé_em_São_Paulo.jpg?width=1000",
+    alt: "São Paulo Cathedral at Praça da Sé", title: "São Paulo's cultural mosaic",
+    description: "The city centre reflects São Paulo's many communities, with architecture, music, food and neighbourhood traditions from around the world.",
+    source: "https://commons.wikimedia.org/wiki/File:Catedral_da_S%C3%A9_em_S%C3%A3o_Paulo.jpg", sourceLabel: "Wilfredor · CC0"
+  },
+  Taipei: {
+    country: "Taiwan", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Taipei_101_in_2019.jpg?width=1000",
+    alt: "Taipei 101 tower in Taiwan", title: "Taipei's old and new",
+    description: "Taipei pairs contemporary landmarks with night markets, temples, tea culture and lively neighbourhood streets.",
+    source: "https://commons.wikimedia.org/wiki/File:Taipei_101_in_2019.jpg", sourceLabel: "James Tang · CC BY-SA 4.0"
+  },
+  Toronto: {
+    country: "Canada", image: "https://commons.wikimedia.org/wiki/Special:FilePath/CN_Tower.jpg?width=1000",
+    alt: "CN Tower in Toronto", title: "Toronto's neighbourhood cultures",
+    description: "Toronto's skyline sits above neighbourhoods shaped by Indigenous histories and generations of migration, languages, food and arts.",
+    source: "https://commons.wikimedia.org/wiki/File:CN_Tower.jpg", sourceLabel: "Local hero · Public domain"
+  },
 };
 
 const categoryIcons: Record<string, typeof Package> = {
@@ -675,7 +771,23 @@ export default function App() {
                     {city:"Seoul",x:79,y:34,count:"57"},
                     {city:"Tokyo",x:84,y:42,count:"49"},
                     {city:"Singapore",x:73,y:64,count:"28"},
-                    {city:"Sydney",x:86,y:79,count:"16"}
+                    {city:"Sydney",x:86,y:79,count:"16"},
+                    {city:"Paris",x:49,y:31,count:"31"},
+                    {city:"Berlin",x:52,y:27,count:"24"},
+                    {city:"Bangkok",x:75,y:53,count:"33"},
+                    {city:"Beijing",x:76,y:31,count:"29"},
+                    {city:"Buenos Aires",x:31,y:79,count:"19"},
+                    {city:"Cairo",x:56,y:43,count:"26"},
+                    {city:"Cape Town",x:54,y:83,count:"17"},
+                    {city:"Istanbul",x:56,y:34,count:"35"},
+                    {city:"Lisbon",x:44,y:36,count:"22"},
+                    {city:"Melbourne",x:89,y:86,count:"21"},
+                    {city:"Mexico City",x:16,y:48,count:"38"},
+                    {city:"Mumbai",x:66,y:48,count:"32"},
+                    {city:"Nairobi",x:59,y:65,count:"18"},
+                    {city:"São Paulo",x:34,y:67,count:"41"},
+                    {city:"Taipei",x:81,y:44,count:"27"},
+                    {city:"Toronto",x:22,y:30,count:"30"}
                   ] as const).map((spot)=><button key={spot.city} className={activeHotspot===spot.city?"map-hotspot active":"map-hotspot"} style={{left:spot.x+"%",top:spot.y+"%"}} onClick={()=>setActiveHotspot(spot.city)} aria-label={"Select "+spot.city+" hotspot"}><span className="hotspot-pulse"/><span className="hotspot-count">{spot.count}</span></button>)}
                   <div className="map-legend"><span><i/> Discovery hotspot</span><span>Numbers are demo counts</span></div>
                 </div>
@@ -684,7 +796,7 @@ export default function App() {
                 <span className="eyebrow">FEATURED HOTSPOT</span>
                 <h4>{activeHotspot}</h4>
                 <p>Illustrative community activity around a major city and travel hub.</p>
-                <div className="hotspot-metrics"><strong>{({"Vancouver":"18","New York":"42","London":"36","Dubai":"21","Seoul":"57","Tokyo":"49","Singapore":"28","Sydney":"16"} as Record<string,string>)[activeHotspot]}</strong><span>sample reports</span></div>
+                <div className="hotspot-metrics"><strong>{({"Vancouver":"18","New York":"42","London":"36","Dubai":"21","Seoul":"57","Tokyo":"49","Singapore":"28","Sydney":"16","Paris":"31","Berlin":"24","Bangkok":"33","Beijing":"29","Buenos Aires":"19","Cairo":"26","Cape Town":"17","Istanbul":"35","Lisbon":"22","Melbourne":"21","Mexico City":"38","Mumbai":"32","Nairobi":"18","São Paulo":"41","Taipei":"27","Toronto":"30"} as Record<string,string>)[activeHotspot]}</strong><span>sample reports</span></div>
                 <div className="hotspot-culture">
                   <img src={hotspotCulture[activeHotspot].image} alt={hotspotCulture[activeHotspot].alt} loading="lazy"/>
                   <div className="hotspot-culture-copy">
@@ -703,10 +815,26 @@ export default function App() {
                     "Dubai":[["Gold bracelet","Found"],["Carry-on luggage","Lost"],["Car key fob","Lost"]],
                     "Singapore":[["Tablet","Found"],["Blue umbrella","Lost"],["Transit card holder","Found"]],
                     "Vancouver":[["Golden retriever","Lost"],["Mountain bike","Found"],["Red scarf","Lost"]],
-                    "Sydney":[["Surfboard","Lost"],["Sunglasses","Found"],["Camera","Lost"]]
+                    "Sydney":[["Surfboard","Lost"],["Sunglasses","Found"],["Camera","Lost"]],
+                    "Paris":[["Leather handbag","Found"],["Metro pass holder","Lost"],["Camera lens","Lost"]],
+                    "Berlin":[["Bicycle helmet","Lost"],["Canvas tote bag","Found"],["Wireless headphones","Lost"]],
+                    "Bangkok":[["Phone pouch","Found"],["Temple-visit day bag","Lost"],["Motorbike key","Lost"]],
+                    "Beijing":[["Glasses case","Lost"],["Travel wallet","Found"],["Camera strap","Lost"]],
+                    "Buenos Aires":[["Football scarf","Lost"],["Leather card holder","Found"],["Earbuds","Lost"]],
+                    "Cairo":[["Backpack","Lost"],["Silver ring","Found"],["Phone charger","Lost"]],
+                    "Cape Town":[["Hiking daypack","Lost"],["Water bottle","Found"],["Sunglasses","Lost"]],
+                    "Istanbul":[["Shopping bag","Lost"],["Scarf","Found"],["Travel document wallet","Lost"]],
+                    "Lisbon":[["Compact camera","Lost"],["Blue backpack","Found"],["Transit card","Lost"]],
+                    "Melbourne":[["Tram card holder","Lost"],["Laptop sleeve","Found"],["Bike light","Lost"]],
+                    "Mexico City":[["Art notebook","Lost"],["Wallet","Found"],["Phone case","Lost"]],
+                    "Mumbai":[["Umbrella","Lost"],["Lunch bag","Found"],["Earphones","Lost"]],
+                    "Nairobi":[["Laptop bag","Lost"],["Water flask","Found"],["Travel pouch","Lost"]],
+                    "São Paulo":[["Backpack","Lost"],["Sports cap","Found"],["Key ring","Lost"]],
+                    "Taipei":[["Transit card case","Lost"],["Camera","Found"],["Umbrella","Lost"]],
+                    "Toronto":[["Winter gloves","Lost"],["Lunch container","Found"],["Headphones","Lost"]]
                   } as Record<string,string[][]>)[activeHotspot]||[]).map(([name,status])=><div className="hotspot-item-row" key={name}><span className="hotspot-item-dot"/><span>{name}</span><b className={status==="Lost"?"is-lost":"is-found"}>{status}</b></div>)}
                 </div>
-                <div className="hotspot-city-list">{(["Seoul","Tokyo","London","New York","Dubai","Singapore","Vancouver","Sydney"] as const).map((city)=><button key={city} className={activeHotspot===city?"selected":""} onClick={()=>setActiveHotspot(city)}><MapPin size={14}/>{city}<span>Explore</span></button>)}</div>
+                <div className="hotspot-city-list">{(["Seoul","Tokyo","London","New York","Dubai","Singapore","Vancouver","Sydney","Paris","Berlin","Bangkok","Beijing","Buenos Aires","Cairo","Cape Town","Istanbul","Lisbon","Melbourne","Mexico City","Mumbai","Nairobi","São Paulo","Taipei","Toronto"] as const).map((city)=><button key={city} className={activeHotspot===city?"selected":""} onClick={()=>setActiveHotspot(city)}><MapPin size={14}/>{city}<span>Explore</span></button>)}</div>
                 <small className="hotspot-disclaimer">Concept data only. These are not verified reports or real-time statistics.</small>
               </aside>
             </div>
