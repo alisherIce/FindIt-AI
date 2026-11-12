@@ -221,6 +221,18 @@ const hotspotCulture: Record<string, { country: string; image: string; alt: stri
     description: "Toronto's skyline sits above neighbourhoods shaped by Indigenous histories and generations of migration, languages, food and arts.",
     source: "https://commons.wikimedia.org/wiki/File:CN_Tower.jpg", sourceLabel: "Local hero · Public domain"
   },
+  Oslo: {
+    country: "Norway", image: "https://commons.wikimedia.org/wiki/Special:FilePath/The_Oslo_Opera_House_(Operahuset)_(29253178463).jpg?width=1000",
+    alt: "Oslo Opera House beside the Oslofjord", title: "Oslo's fjord and opera house",
+    description: "The waterfront Opera House is a modern cultural landmark where visitors can walk across the roof and look out over the Oslofjord.",
+    source: "https://commons.wikimedia.org/wiki/File:The_Oslo_Opera_House_(Operahuset)_(29253178463).jpg", sourceLabel: "Jorge Láscar · CC BY 2.0"
+  },
+  Marrakech: {
+    country: "Morocco", image: "https://commons.wikimedia.org/wiki/Special:FilePath/Fnar_and_Atlas_mountains.jpg?width=1000",
+    alt: "Jemaa el-Fnaa square with the Atlas Mountains beyond Marrakech", title: "Marrakech's living medina",
+    description: "Jemaa el-Fnaa is a historic public square known for food stalls, storytellers, crafts and the daily life of the medina.",
+    source: "https://commons.wikimedia.org/wiki/File:Fnar_and_Atlas_mountains.jpg", sourceLabel: "Elgaard · CC BY-SA 4.0"
+  },
 };
 
 const categoryIcons: Record<string, typeof Package> = {
@@ -754,10 +766,10 @@ export default function App() {
               <div><strong>Worldwide</strong><span>Designed to scale across borders</span></div>
             </div>
             <div className="network-section-title"><div><span className="eyebrow">DISCOVER BY CATEGORY</span><h3>More than everyday lost items.</h3></div><span className="demo-label">CONCEPT SHOWCASE</span></div>
-            <div className="network-map-heading"><div><span className="eyebrow">WORLDWIDE HOTSPOTS</span><h3>See where discoveries happen.</h3><p>Explore 24 illustrative lost-and-found hotspots, each paired with a local cultural photo story.</p></div><span className="demo-label">ILLUSTRATIVE MAP · NOT LIVE ACTIVITY</span></div>
+            <div className="network-map-heading"><div><span className="eyebrow">WORLDWIDE HOTSPOTS</span><h3>See where discoveries happen.</h3><p>Explore 26 illustrative city hotspots across 24 countries, each paired with a local cultural photo story.</p></div><span className="demo-label">ILLUSTRATIVE MAP · NOT LIVE ACTIVITY</span></div>
             <div className="network-map-layout">
               <div className="world-map-panel">
-                <div className="world-map-topline"><span><span className="map-live-dot"/> GLOBAL DISCOVERY MAP</span><small>24 city hotspots · Approximate locations</small></div>
+                <div className="world-map-topline"><span><span className="map-live-dot"/> GLOBAL DISCOVERY MAP</span><small>26 city hotspots · Approximate locations</small></div>
                 <div className="world-map-canvas">
                   <svg className="world-map-shapes" viewBox="0 0 1000 480" role="img" aria-label="Stylized world map showing approximate global discovery hotspots">
                     <path d="M85 105 130 65 205 55 250 82 275 130 250 160 225 177 210 220 180 245 158 215 130 205 118 165 88 145Z M215 250 250 270 267 320 250 375 225 420 205 380 195 330Z M385 105 430 75 485 80 520 105 505 135 470 145 450 180 425 160 405 130Z M455 190 495 205 520 255 505 325 470 390 440 340 430 275Z M520 90 590 55 690 65 760 95 840 90 900 130 875 165 815 175 770 205 710 190 680 225 630 205 590 170 545 165 520 130Z M770 260 825 250 870 275 850 315 800 325 770 295Z"/>
@@ -787,7 +799,9 @@ export default function App() {
                     {city:"Nairobi",x:59,y:65,count:"18"},
                     {city:"São Paulo",x:34,y:67,count:"41"},
                     {city:"Taipei",x:81,y:44,count:"27"},
-                    {city:"Toronto",x:22,y:30,count:"30"}
+                    {city:"Toronto",x:22,y:30,count:"30"},
+                    {city:"Oslo",x:51,y:18,count:"23"},
+                    {city:"Marrakech",x:47,y:42,count:"20"}
                   ] as const).map((spot)=><button key={spot.city} className={activeHotspot===spot.city?"map-hotspot active":"map-hotspot"} style={{left:spot.x+"%",top:spot.y+"%"}} onClick={()=>setActiveHotspot(spot.city)} aria-label={"Select "+spot.city+" hotspot"}><span className="hotspot-pulse"/><span className="hotspot-count">{spot.count}</span></button>)}
                   <div className="map-legend"><span><i/> Discovery hotspot</span><span>Numbers are demo counts</span></div>
                 </div>
@@ -796,7 +810,7 @@ export default function App() {
                 <span className="eyebrow">FEATURED HOTSPOT</span>
                 <h4>{activeHotspot}</h4>
                 <p>Illustrative community activity around a major city and travel hub.</p>
-                <div className="hotspot-metrics"><strong>{({"Vancouver":"18","New York":"42","London":"36","Dubai":"21","Seoul":"57","Tokyo":"49","Singapore":"28","Sydney":"16","Paris":"31","Berlin":"24","Bangkok":"33","Beijing":"29","Buenos Aires":"19","Cairo":"26","Cape Town":"17","Istanbul":"35","Lisbon":"22","Melbourne":"21","Mexico City":"38","Mumbai":"32","Nairobi":"18","São Paulo":"41","Taipei":"27","Toronto":"30"} as Record<string,string>)[activeHotspot]}</strong><span>sample reports</span></div>
+                <div className="hotspot-metrics"><strong>{({"Vancouver":"18","New York":"42","London":"36","Dubai":"21","Seoul":"57","Tokyo":"49","Singapore":"28","Sydney":"16","Paris":"31","Berlin":"24","Bangkok":"33","Beijing":"29","Buenos Aires":"19","Cairo":"26","Cape Town":"17","Istanbul":"35","Lisbon":"22","Melbourne":"21","Mexico City":"38","Mumbai":"32","Nairobi":"18","São Paulo":"41","Taipei":"27","Toronto":"30","Oslo":"23","Marrakech":"20"} as Record<string,string>)[activeHotspot]}</strong><span>sample reports</span></div>
                 <div className="hotspot-culture">
                   <img src={hotspotCulture[activeHotspot].image} alt={hotspotCulture[activeHotspot].alt} loading="lazy"/>
                   <div className="hotspot-culture-copy">
@@ -831,10 +845,12 @@ export default function App() {
                     "Nairobi":[["Laptop bag","Lost"],["Water flask","Found"],["Travel pouch","Lost"]],
                     "São Paulo":[["Backpack","Lost"],["Sports cap","Found"],["Key ring","Lost"]],
                     "Taipei":[["Transit card case","Lost"],["Camera","Found"],["Umbrella","Lost"]],
-                    "Toronto":[["Winter gloves","Lost"],["Lunch container","Found"],["Headphones","Lost"]]
+                    "Toronto":[["Winter gloves","Lost"],["Lunch container","Found"],["Headphones","Lost"]],
+                    "Oslo":[["Wool hat","Lost"],["Reusable bottle","Found"],["Gloves","Lost"]],
+                    "Marrakech":[["Leather satchel","Lost"],["Sunglasses","Found"],["Phone charger","Lost"]]
                   } as Record<string,string[][]>)[activeHotspot]||[]).map(([name,status])=><div className="hotspot-item-row" key={name}><span className="hotspot-item-dot"/><span>{name}</span><b className={status==="Lost"?"is-lost":"is-found"}>{status}</b></div>)}
                 </div>
-                <div className="hotspot-city-list">{(["Seoul","Tokyo","London","New York","Dubai","Singapore","Vancouver","Sydney","Paris","Berlin","Bangkok","Beijing","Buenos Aires","Cairo","Cape Town","Istanbul","Lisbon","Melbourne","Mexico City","Mumbai","Nairobi","São Paulo","Taipei","Toronto"] as const).map((city)=><button key={city} className={activeHotspot===city?"selected":""} onClick={()=>setActiveHotspot(city)}><MapPin size={14}/>{city}<span>Explore</span></button>)}</div>
+                <div className="hotspot-city-list">{(["Seoul","Tokyo","London","New York","Dubai","Singapore","Vancouver","Sydney","Paris","Berlin","Bangkok","Beijing","Buenos Aires","Cairo","Cape Town","Istanbul","Lisbon","Melbourne","Mexico City","Mumbai","Nairobi","São Paulo","Taipei","Toronto","Oslo","Marrakech"] as const).map((city)=><button key={city} className={activeHotspot===city?"selected":""} onClick={()=>setActiveHotspot(city)}><MapPin size={14}/>{city}<span>Explore</span></button>)}</div>
                 <small className="hotspot-disclaimer">Concept data only. These are not verified reports or real-time statistics.</small>
               </aside>
             </div>
