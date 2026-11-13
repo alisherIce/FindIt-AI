@@ -453,7 +453,12 @@ export default function App() {
     let active = true;
     const initialize = async () => {
       if (isSupabaseConfigured) {
-        const restored = await getBackendSession();
+        let restored: BackendSession | null = null;
+        try {
+          restored = await getBackendSession();
+        } catch (err) {
+          setError(err instanceof Error ? err.message : "Could not restore your Supabase session.");
+        }
         if (!active) return;
         setBackendSession(restored);
         setToken(restored?.access_token ?? "");
