@@ -1,5 +1,19 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
+  BackendSession,
+  createBackendItem,
+  deleteItemPhoto,
+  getBackendSession,
+  isSupabaseConfigured,
+  listBackendItems,
+  publicItemPhotoUrl,
+  resolveBackendItem,
+  signInWithPassword,
+  signOutFromBackend,
+  signUpWithPassword,
+  uploadItemPhoto
+} from "./lib/supabase";
+import {
   ArrowRight,
   ArrowUpRight,
   CarFront,
@@ -57,6 +71,24 @@ type Match = Item & {
   matchReasons: string[];
 };
 type CurrentUser = { id: string; email: string };
+
+function fromBackendItem(row: import("./lib/supabase").BackendItem): Item {
+  return {
+    id: row.id,
+    item_type: row.item_type,
+    title: row.title,
+    category: row.category,
+    campus: row.campus,
+    country: row.country,
+    location: row.location,
+    description: row.description,
+    image_filename: row.image_path.split("/").pop() ?? "item-photo",
+    image_url: publicItemPhotoUrl(row.image_path),
+    status: row.status,
+    owner_id: row.owner_id,
+    created_at: row.created_at
+  };
+}
 
 const hotspotCulture: Record<string, { country: string; image: string; alt: string; title: string; description: string; source: string; sourceLabel: string }> = {
   Seoul: {
@@ -350,10 +382,12 @@ function createDemoItems(): Item[] {
 export default function App() {
   const [items, setItems] = useState<Item[]>([]);
   const [token, setToken] = useState(() => localStorage.getItem(DEMO_SESSION_KEY) ?? "");
+  const [backendSession, setBackendSession] = useState<BackendSession | null>(null);
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [authEmail, setAuthEmail] = useState("");
+  const [authPassword, setAuthPassword] = useState("");
   const [form, setForm] = useState({ title: "", category: "Electronics", campus: "Gachon University", location: "", description: "" });
   const [authError, setAuthError] = useState("");
   const [authBusy, setAuthBusy] = useState(false);
@@ -384,47 +418,79 @@ export default function App() {
 ];
 
 
-  function loadItems() {
+  async function loadItems() {
+    setLoading(true);
     try {
-      const stored = localStorage.getItem(DEMO_ITEMS_KEY);
-      if (stored) {
-        const parsed: unknown = JSON.parse(stored);
-        if (!Array.isArray(parsed)) throw new Error("Saved reports have an unsupported format.");
-        setItems(parsed as Item[]);
+      if (isSupabaseConfigured) {
+        const rows = await listBackendItems();
+        setItems(rows.map(fromBackendItem));
       } else {
-        const samples = createDemoItems();
-        localStorage.setItem(DEMO_ITEMS_KEY, JSON.stringify(samples));
-        setItems(samples);
+        const stored = localStorage.getItem(DEMO_ITEMS_KEY);
+        if (stored) {
+          const parsed: unknown = JSON.parse(stored);
+          if (!Array.isArray(parsed)) throw new Error("Saved reports have an unsupported format.");
+          setItems(parsed as Item[]);
+        } else {
+          const samples = createDemoItems();
+          localStorage.setItem(DEMO_ITEMS_KEY, JSON.stringify(samples));
+          setItems(samples);
+        }
       }
-    } catch {
-      setItems(createDemoItems());
-      setError("Saved browser data could not be read. Showing sample reports instead.");
+    } catch (err) {
+      if (isSupabaseConfigured) {
+        setItems([]);
+        setError(err instanceof Error ? err.message : "Could not load shared reports.");
+      } else {
+        setItems(createDemoItems());
+        setError("Saved browser data could not be read. Showing sample reports instead.");
+      }
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    loadItems();
-    try {
-      const sessionId = localStorage.getItem(DEMO_SESSION_KEY);
-      const storedUsers: unknown = JSON.parse(localStorage.getItem(DEMO_USERS_KEY) ?? "[]");
-      const users = Array.isArray(storedUsers) ? storedUsers as DemoUser[] : [];
-      const user = users.find((entry) => entry.id === sessionId);
-      if (user) setCurrentUser({ id: user.id, email: user.email });
-      else {
+    let active = true;
+    const initialize = async () => {
+      if (isSupabaseConfigured) {
+        const restored = await getBackendSession();
+        if (!active) return;
+        setBackendSession(restored);
+        setToken(restored?.access_token ?? "");
+        setCurrentUser(restored ? { id: restored.user.id, email: restored.user.email ?? "" } : null);
+        await loadItems();
+        return;
+      }
+
+      loadItems();
+      try {
+        const sessionId = localStorage.getItem(DEMO_SESSION_KEY);
+        const storedUsers: unknown = JSON.parse(localStorage.getItem(DEMO_USERS_KEY) ?? "[]");
+        const users = Array.isArray(storedUsers) ? storedUsers as DemoUser[] : [];
+        const user = users.find((entry) => entry.id === sessionId);
+        if (user) setCurrentUser({ id: user.id, email: user.email });
+        else {
+          localStorage.removeItem(DEMO_SESSION_KEY);
+          setToken("");
+        }
+      } catch {
         localStorage.removeItem(DEMO_SESSION_KEY);
         setToken("");
+        setCurrentUser(null);
       }
-    } catch {
-      localStorage.removeItem(DEMO_SESSION_KEY);
-      setToken("");
-      setCurrentUser(null);
-    }
+    };
+    void initialize();
 
     const handleStorage = (event: StorageEvent) => {
-      if (event.key === DEMO_ITEMS_KEY) loadItems();
-      if (event.key === DEMO_SESSION_KEY) {
+      if (event.key === DEMO_ITEMS_KEY && !isSupabaseConfigured) void loadItems();
+      if (event.key === "findit_supabase_session" && isSupabaseConfigured) {
+        void getBackendSession().then((restored) => {
+          setBackendSession(restored);
+          setToken(restored?.access_token ?? "");
+          setCurrentUser(restored ? { id: restored.user.id, email: restored.user.email ?? "" } : null);
+        });
+      }
+      if (event.key === DEMO_SESSION_KEY && !isSupabaseConfigured) {
         const sessionId = event.newValue;
         try {
           const users: DemoUser[] = JSON.parse(localStorage.getItem(DEMO_USERS_KEY) ?? "[]");
@@ -438,7 +504,10 @@ export default function App() {
       }
     };
     window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
+    return () => {
+      active = false;
+      window.removeEventListener("storage", handleStorage);
+    };
   }, []);
 
   useEffect(() => {
@@ -553,144 +622,152 @@ const foundCount = activeItems.filter(
   
 async function submitAuth(event: FormEvent<HTMLFormElement>) {
   event.preventDefault();
-
   setAuthBusy(true);
   setAuthError("");
 
   try {
-    const email = authEmail.trim();
+    const email = authEmail.trim().toLowerCase();
+    if (!email) throw new Error("Please enter your email.");
 
-    if (!email) {
-      throw new Error("Please enter your email.");
-    }
-
-    const users: DemoUser[] = JSON.parse(
-      localStorage.getItem(DEMO_USERS_KEY) ?? "[]"
-    );
-
-    let user = users.find(
-      (entry) =>
-        entry.email.toLowerCase() === email.toLowerCase()
-    );
-
-    if (authMode === "register") {
-      if (user) {
-        throw new Error(
-          "A demo profile with this email already exists."
-        );
+    if (isSupabaseConfigured) {
+      if (authPassword.length < 8) throw new Error("Use a password with at least 8 characters.");
+      if (authMode === "register") {
+        const session = await signUpWithPassword(email, authPassword);
+        if (!session) {
+          setShowAuth(false);
+          setAuthPassword("");
+          setAuthEmail("");
+          setNotice("Account created. Check your email to confirm the address, then sign in.");
+          return;
+        }
+        setBackendSession(session);
+        setToken(session.access_token);
+        setCurrentUser({ id: session.user.id, email: session.user.email ?? email });
+        setNotice("Your account is ready. Your reports will be shared with the community.");
+      } else {
+        const session = await signInWithPassword(email, authPassword);
+        setBackendSession(session);
+        setToken(session.access_token);
+        setCurrentUser({ id: session.user.id, email: session.user.email ?? email });
+        setNotice("You are signed in to FindIt AI.");
       }
-
-      user = {
-        id: crypto.randomUUID(),
-        email
-      };
-
-      users.push(user);
-    } else if (!user) {
-      throw new Error(
-        "No local profile exists. Create a demo profile first."
-      );
+    } else {
+      const users: DemoUser[] = JSON.parse(localStorage.getItem(DEMO_USERS_KEY) ?? "[]");
+      let user = users.find((entry) => entry.email.toLowerCase() === email);
+      if (authMode === "register") {
+        if (user) throw new Error("A demo profile with this email already exists.");
+        user = { id: crypto.randomUUID(), email };
+        users.push(user);
+      } else if (!user) {
+        throw new Error("No local profile exists. Create a demo profile first.");
+      }
+      localStorage.setItem(DEMO_USERS_KEY, JSON.stringify(users));
+      localStorage.setItem(DEMO_SESSION_KEY, user.id);
+      setToken(user.id);
+      setCurrentUser({ id: user.id, email: user.email });
+      setNotice(authMode === "register"
+        ? "Local demo profile created. Connect Supabase to enable shared accounts and reports."
+        : "Your local demo profile has been restored.");
     }
-
-    localStorage.setItem(
-      DEMO_USERS_KEY,
-      JSON.stringify(users)
-    );
-
-    localStorage.setItem(DEMO_SESSION_KEY, user.id);
-
-    setToken(user.id);
-    setCurrentUser({
-      id: user.id,
-      email: user.email
-    });
 
     setShowAuth(false);
     setAuthMode("login");
-
-    setNotice(
-      authMode === "register"
-        ? "Your local demo profile is ready."
-        : "Your demo profile has been restored."
-    );
-
+    setAuthPassword("");
     if (pendingReportType) {
       startReport(pendingReportType);
       setPendingReportType(null);
     }
-
   } catch (err) {
-    setAuthError(
-      err instanceof Error
-        ? err.message
-        : "Could not access your demo profile."
-    );
+    setAuthError(err instanceof Error ? err.message : "Could not access your account.");
   } finally {
     setAuthBusy(false);
   }
 }
 
-  function signOut() {
-    localStorage.removeItem(DEMO_SESSION_KEY);
-    setToken("");
-    setCurrentUser(null);
-    setNotice("You have signed out.");
+  async function signOut() {
+    try {
+      if (isSupabaseConfigured) {
+        await signOutFromBackend();
+        setBackendSession(null);
+      } else {
+        localStorage.removeItem(DEMO_SESSION_KEY);
+      }
+      setToken("");
+      setCurrentUser(null);
+      setNotice("You have signed out.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not sign out.");
+    }
   }
 
   
 async function submitReport(event: FormEvent<HTMLFormElement>) {
   event.preventDefault();
-
   if (!selectedFile) {
     setError("Please choose a photo of the item.");
+    return;
+  }
+  if (!currentUser) {
+    setError("Sign in before submitting a report.");
     return;
   }
 
   setSubmitting(true);
   setError("");
+  let uploadedPath: string | null = null;
 
   try {
     const compressedImage = await compressImage(selectedFile);
+    const nextCountry = country === "All countries" ? "South Korea" : country;
 
-    const nextItem: Item = {
-      id: crypto.randomUUID(),
-      item_type: reportType,
-      title: form.title.trim(),
-      category: form.category,
-      campus: form.campus.trim(),
-      country: country === "All countries"
-        ? "South Korea"
-        : country,
-      location: form.location.trim(),
-      description: form.description.trim(),
-      image_filename: selectedFile.name,
-      image_url: compressedImage,
-      status: "active",
-      owner_id: currentUser?.id ?? null,
-      created_at: new Date().toISOString()
-    };
+    if (isSupabaseConfigured) {
+      if (!backendSession) throw new Error("Your session expired. Please sign in again.");
+      const imageBlob = await fetch(compressedImage).then((response) => response.blob());
+      uploadedPath = await uploadItemPhoto(imageBlob, currentUser.id, selectedFile.name, backendSession.access_token);
+      const saved = await createBackendItem({
+        item_type: reportType,
+        title: form.title.trim(),
+        category: form.category,
+        campus: form.campus.trim(),
+        country: nextCountry,
+        location: form.location.trim(),
+        description: form.description.trim(),
+        image_path: uploadedPath,
+        owner_id: currentUser.id
+      }, backendSession.access_token);
+      setItems((current) => [fromBackendItem(saved), ...current]);
+      setNotice("Your report is now published to the shared FindIt AI community.");
+    } else {
+      const nextItem: Item = {
+        id: crypto.randomUUID(),
+        item_type: reportType,
+        title: form.title.trim(),
+        category: form.category,
+        campus: form.campus.trim(),
+        country: nextCountry,
+        location: form.location.trim(),
+        description: form.description.trim(),
+        image_filename: selectedFile.name,
+        image_url: compressedImage,
+        status: "active",
+        owner_id: currentUser.id,
+        created_at: new Date().toISOString()
+      };
+      const nextItems = [nextItem, ...items];
+      localStorage.setItem(DEMO_ITEMS_KEY, JSON.stringify(nextItems));
+      setItems(nextItems);
+      setNotice("Demo report saved in this browser. Add Supabase settings to publish it for everyone.");
+    }
 
-    const nextItems = [nextItem, ...items];
-
-    localStorage.setItem(
-      DEMO_ITEMS_KEY,
-      JSON.stringify(nextItems)
-    );
-
-    setItems(nextItems);
     setShowReport(false);
     setSelectedFile(null);
-
-    setNotice(
-      "Your report and photo were saved in this browser."
-    );
-
+    setForm({ title: "", category: "Electronics", campus: "Gachon University", location: "", description: "" });
+    void loadItems();
   } catch (err) {
-    setError(
-      err instanceof Error
-        ? err.message
-        : "Could not save your report. Browser storage may be full."
-    );
+    if (uploadedPath && backendSession) {
+      try { await deleteItemPhoto(uploadedPath, backendSession.access_token); } catch { /* The orphan can be removed from Supabase Storage later. */ }
+    }
+    setError(err instanceof Error ? err.message : "Could not save your report.");
   } finally {
     setSubmitting(false);
   }
@@ -741,10 +818,20 @@ async function submitReport(event: FormEvent<HTMLFormElement>) {
 
   async function resolveItem(item: Item) {
     if (item.owner_id !== currentUser?.id) return;
-    const nextItems = items.map((entry) => entry.id === item.id ? { ...entry, status: "resolved" } : entry);
-    localStorage.setItem(DEMO_ITEMS_KEY, JSON.stringify(nextItems));
-    setItems(nextItems);
-    setNotice("Your report was marked as resolved.");
+    try {
+      if (isSupabaseConfigured) {
+        if (!backendSession) throw new Error("Please sign in again.");
+        await resolveBackendItem(item.id, currentUser.id, backendSession.access_token);
+        setItems((current) => current.filter((entry) => entry.id !== item.id));
+      } else {
+        const nextItems = items.map((entry) => entry.id === item.id ? { ...entry, status: "resolved" } : entry);
+        localStorage.setItem(DEMO_ITEMS_KEY, JSON.stringify(nextItems));
+        setItems(nextItems);
+      }
+      setNotice("Your report was marked as resolved.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not resolve this report.");
+    }
   }
 
   return (
