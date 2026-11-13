@@ -609,7 +609,7 @@ const foundCount = activeItems.filter(
   }
 
   function openReport(type: ItemType) {
-    if (!token) {
+    if (!currentUser) {
       setPendingReportType(type);
       setAuthError("");
       setAuthMode("login");
@@ -896,7 +896,7 @@ async function submitReport(event: FormEvent<HTMLFormElement>) {
                 <button key={term} onClick={() => { setSearch(term); setFilter("found"); setShowResultsFilters(true); document.getElementById("community-board")?.scrollIntoView({ behavior: "smooth" }); }}>{term}</button>
               ))}
             </div>
-            <div className="trust-line"><ShieldCheck size={16} /> Demo reports stay in this browser and are not uploaded.</div>
+            <div className="trust-line"><ShieldCheck size={16} /> {isSupabaseConfigured ? "Shared community reports are enabled." : "Demo reports stay in this browser. Cloud sharing is not configured yet."}</div>
           </div>
           <div className="hero-art" aria-label="Illustration of a found item being returned">
             <div className="art-orbit orbit-one" />
@@ -1242,25 +1242,26 @@ decoding="async"/>
             <div className="modal-header">
               <div>
   <div className="eyebrow">
-    <ShieldCheck size={13} /> LOCAL DEMO PROFILE
+    <ShieldCheck size={13} /> {isSupabaseConfigured ? "SECURE ACCOUNT" : "LOCAL DEMO PROFILE"}
   </div>
 
   <h2 id="auth-title">
     {authMode === "login"
       ? "Welcome back"
-      : "Create a demo profile"}
+      : isSupabaseConfigured ? "Create your account" : "Create a demo profile"}
   </h2>
 
   <p>
-    Your profile is stored in this browser only.
-    This is not secure server authentication.
+    {isSupabaseConfigured
+      ? "Your account is protected by Supabase Authentication. Use your email and a unique password."
+      : "This profile is stored in this browser only. It is not a shared or secure account."}
   </p>
 </div>
             </div>
             {authError && <div className="alert alert-error" role="alert">{authError}</div>}
             <form className="report-form auth-form" onSubmit={submitAuth}>
               <label className="field-label">
-  Demo email
+  Email address
   <input
     type="email"
     required
@@ -1270,7 +1271,22 @@ decoding="async"/>
     placeholder="you@university.edu"
   />
 </label>
-              <p className="privacy-note">This prototype uses a local browser profile only. Do not use a real password or sensitive account information.</p>
+              {isSupabaseConfigured ? (
+                <label className="field-label">Password
+                  <input
+                    type="password"
+                    required
+                    minLength={8}
+                    maxLength={128}
+                    autoComplete={authMode === "login" ? "current-password" : "new-password"}
+                    value={authPassword}
+                    onChange={(event) => setAuthPassword(event.target.value)}
+                    placeholder="At least 8 characters"
+                  />
+                </label>
+              ) : (
+                <p className="privacy-note">Demo mode only: no password is used and this profile cannot be shared across devices.</p>
+              )}
               <button className="button button-primary submit-button" type="submit" disabled={authBusy}>{authBusy ? "Please wait..." : authMode === "login" ? "Sign in" : "Create account"} <ArrowRight size={17} /></button>
             </form>
             <p className="auth-switch">{authMode === "login" ? "New to FindIt AI?" : "Already have an account?"} <button onClick={() => { setAuthMode(authMode === "login" ? "register" : "login"); setAuthError(""); }}>{authMode === "login" ? "Create an account" : "Sign in"}</button></p>
@@ -1329,7 +1345,7 @@ decoding="async"/>
                   />
                 </span>
               </label>
-              <p className="privacy-note"><ShieldCheck size={15} /> Photos are stored in this browser only. Avoid including personal contact details or sensitive information in the description.</p>
+              <p className="privacy-note"><ShieldCheck size={15} /> {isSupabaseConfigured ? "Photos are uploaded to the shared FindIt AI photo bucket." : "Photos are stored in this browser only."} Avoid including personal contact details or sensitive information in photos or descriptions.</p>
               <button className="button button-primary submit-button" type="submit" disabled={submitting}>{submitting ? "Submitting report..." : "Submit report"} <ArrowRight size={17} /></button>
             </form>
           </section>
