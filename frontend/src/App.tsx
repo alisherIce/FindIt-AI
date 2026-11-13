@@ -724,11 +724,14 @@ async function submitAuth(event: FormEvent<HTMLFormElement>) {
       } else {
         localStorage.removeItem(DEMO_SESSION_KEY);
       }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "The server could not revoke the session; this browser has still been signed out.");
+      if (isSupabaseConfigured) localStorage.removeItem("findit_supabase_session");
+    } finally {
       setToken("");
       setCurrentUser(null);
+      setBackendSession(null);
       setNotice("You have signed out.");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not sign out.");
     }
   }
 
@@ -964,7 +967,9 @@ async function submitReport(event: FormEvent<HTMLFormElement>) {
             <div className="eyebrow"><Sparkles size={14} /> SMART CAMPUS LOST & FOUND</div>
             <h1>Lost something?<br /><span>Let’s bring it back.</span></h1>
             <p className="hero-description">
-              Search community reports and compare possible matches in this interactive browser demo.
+              {isSupabaseConfigured
+                ? "Search shared community reports, compare possible matches and contact report owners privately."
+                : "Search sample reports and compare possible matches in this interactive browser demo."}
             </p>
             <div className="hero-search">
               <label className="hero-country"><Globe2 size={18} /><select id="country-select" value={country} onChange={(event) => setCountry(event.target.value)} aria-label="Choose country"><option value="South Korea">🇰🇷  South Korea</option><option value="United States">🇺🇸  United States</option><option value="United Kingdom">🇬🇧  United Kingdom</option><option value="Uzbekistan">🇺🇿  Uzbekistan</option><option value="Japan">🇯🇵  Japan</option><option value="Canada">🇨🇦  Canada</option><option value="Australia">🇦🇺  Australia</option><option value="Germany">🇩🇪  Germany</option><option value="France">🇫🇷  France</option><option value="Italy">🇮🇹  Italy</option><option value="Spain">🇪🇸  Spain</option><option value="Netherlands">🇳🇱  Netherlands</option><option value="Switzerland">🇨🇭  Switzerland</option><option value="Sweden">🇸🇪  Sweden</option><option value="Norway">🇳🇴  Norway</option><option value="Singapore">🇸🇬  Singapore</option><option value="Malaysia">🇲🇾  Malaysia</option><option value="Türkiye">🇹🇷  Türkiye</option><option value="United Arab Emirates">🇦🇪  United Arab Emirates</option><option value="India">🇮🇳  India</option><option value="China">🇨🇳  China</option><option value="Brazil">🇧🇷  Brazil</option><option value="Mexico">🇲🇽  Mexico</option><option value="New Zealand">🇳🇿  New Zealand</option><option value="All countries">🌐  All countries</option></select><ChevronDown size={14} /></label>
@@ -1124,6 +1129,9 @@ async function submitReport(event: FormEvent<HTMLFormElement>) {
                       <div className="item-footer">
                         <span className="category-tag"><Tag size={12} /> {item.category}</span>
                         <button className="match-link" onClick={() => void showMatches(item)}>This looks like mine <ArrowRight size={15} /></button>
+                        {isSupabaseConfigured && currentUser && item.owner_id !== currentUser.id && item.owner_id && (
+                          <button className="match-link" type="button" onClick={() => openContact(item)}>Contact owner</button>
+                        )}
                       </div>
                       {currentUser?.id === item.owner_id && <button className="resolve-link" onClick={() => void resolveItem(item)}>Mark resolved</button>}
                     </div>
@@ -1551,7 +1559,14 @@ decoding="async"/>
           <section className="modal matches-modal" role="dialog" aria-modal="true" aria-labelledby="inbox-title">
             <div className="modal-header">
               <div><div className="eyebrow">PRIVATE MESSAGES</div><h2 id="inbox-title">Your inbox</h2><p>Requests about your reports and replies to requests you sent.</p></div>
-              <button className="icon-button" type="button" onClick={() => setShowInbox(false)} aria-label="Close inbox"><X size={20}/></button>
+              <div className="row" style={{ gap: "8px" }}>
+                <button className="button button-outline button-small" type="button" onClick={() => {
+                  if (backendSession && currentUser) {
+                    void listContactRequests(currentUser.id, backendSession.access_token).then(setContactRequests).catch((err) => setError(err instanceof Error ? err.message : "Could not refresh inbox."));
+                  }
+                }}>Refresh</button>
+                <button className="icon-button" type="button" onClick={() => setShowInbox(false)} aria-label="Close inbox"><X size={20}/></button>
+              </div>
             </div>
             {contactRequests.length === 0 ? (
               <div className="empty-state compact"><strong>No contact requests yet</strong><p>When someone contacts you about a report, it will appear here.</p></div>
