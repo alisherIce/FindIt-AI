@@ -1,30 +1,45 @@
 # FindIt AI
 
-A React, TypeScript and Vite lost-and-found product prototype, currently deployed as a static GitHub Pages application.
+A React, TypeScript and Vite lost-and-found application. It supports a local browser demo and a Supabase-backed shared mode.
 
 ## Live website
 
 https://alisherice.github.io/FindIt-AI/
 
-## What works in the current browser demo
+## Features
 
-- Search reports by item name, category, campus, location and description.
-- Filter by lost/found status, country and local calendar date.
-- Register a local demo profile using an email address (no password or server authentication).
-- Submit lost and found reports with a photo, item category, campus and location.
-- Save reports and compressed photos in the current browser's local storage.
-- See your own reports and mark them as resolved.
-- Rank possible lost/found pairs using text, category, campus, country and location similarity.
-- Keep the local board in sync between tabs in the same browser.
-- Explore a clearly labelled illustrative global map and category showcase.
+- Search shared lost and found reports by name, category, campus, location and description.
+- Filter by report type, country and date.
+- Email/password registration and sign-in through Supabase Auth when configured.
+- Shared report records stored in PostgreSQL.
+- Item photos uploaded to Supabase Storage.
+- Row-level security: only signed-in report owners can update or resolve their own records.
+- Text/category/location-based match suggestions.
+- Report creation, status resolution and refresh-safe sessions.
+- A local-only demo mode remains available until cloud configuration is supplied.
 
-## Important limitations
+## Enable shared cloud mode (one-time project setup)
 
-This is still a **frontend-only prototype**. Reports, demo profiles and photos are stored in one browser, so they are not shared with other users or devices. Clearing browser storage removes that local demo data.
+The code and schema are already in this repository. A Supabase project and two public configuration values still have to be supplied by its owner; this repository connection cannot create a project or read its private dashboard credentials.
 
-The sign-in screen creates a browser-only profile. It is not secure authentication and must not be used with a real password or sensitive account data. Matching is a transparent text/category/location heuristic, not computer vision or an AI model. Global hotspot totals and global showcase cards are illustrative examples, not live reports or real-world statistics.
+1. Create a Supabase project at https://supabase.com/dashboard.
+2. In the Supabase SQL Editor, run the complete migration in `supabase/migrations/202611130001_init.sql`. This creates the reports table, indexes, row-level security policies and `item-photos` storage bucket.
+3. In Supabase **Authentication → URL Configuration**, set the Site URL to `https://alisherice.github.io/FindIt-AI/` and add that same address to the allowed redirect URLs.
+4. In Supabase **Project Settings → API Keys**, copy the **Project URL** and the **Publishable key** (the browser-safe `sb_publishable_...` key). Never use a secret/service-role key in the frontend.
+5. In GitHub, open **Settings → Secrets and variables → Actions → New repository secret** and add:
+   - `VITE_SUPABASE_URL` = the Supabase Project URL
+   - `VITE_SUPABASE_PUBLISHABLE_KEY` = the Supabase Publishable key
+6. Run the **Build and deploy FindIt AI** workflow again (Actions → workflow → Run workflow), or push a change to `main`.
 
-A production multi-user service needs a hosted API, database, image storage, real authentication, server-side authorization and privacy/security rules. Those services must be provisioned and configured separately; GitHub Pages only hosts the static frontend.
+Once the two repository secrets are present and the migration is applied, the GitHub Pages build includes the public Supabase configuration and the app switches to shared mode automatically. Remove/avoid any old `VITE_SUPABASE_ANON_KEY` secret if it contains anything other than the legacy anon public JWT.
+
+**Key safety:** the publishable key is intended for browser apps; database access is controlled by the RLS policies in the SQL migration. Never put a Supabase secret/service-role key in a `VITE_...` variable or the frontend. Supabase documents publishable keys as safe for browser use and secret keys as server-only because they bypass RLS.
+
+**Photo privacy:** the migration creates a public photo bucket so report images can be displayed to all visitors. Upload is restricted to the signed-in user's own folder, but images in the bucket are publicly retrievable. Do not upload identity documents, cards showing private numbers, faces of children, or other sensitive images.
+
+## Local demo mode
+
+Without cloud configuration, the site keeps its browser-only demo mode. Demo accounts and reports are not shared between browsers or devices, and browser storage can be cleared by the user.
 
 ## Run locally
 
@@ -33,10 +48,10 @@ Requirements: Node.js 22 or newer.
 ```bash
 cd frontend
 npm ci
+cp .env.example .env.local
+# Fill in VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY in .env.local
 npm run dev
 ```
-
-Open the local URL printed by Vite.
 
 ## Production build
 
@@ -50,24 +65,22 @@ The production files are generated in `frontend/dist`.
 
 ## Deployment
 
-GitHub Actions builds the frontend and publishes `frontend/dist` to GitHub Pages whenever changes are pushed to `main`. The repository's Pages source must be set to **GitHub Actions**.
+GitHub Actions builds the frontend and publishes `frontend/dist` to GitHub Pages on pushes to `main`. Supabase URL and publishable key are read from GitHub Actions repository secrets during the build.
 
 ## Project structure
 
 ```text
 FindIt-AI/
-├── .github/
-│   └── workflows/
-│       └── deploy.yml
+├── .github/workflows/deploy.yml
+├── supabase/migrations/202611130001_init.sql
 ├── frontend/
+│   ├── .env.example
 │   ├── index.html
 │   ├── package.json
 │   ├── package-lock.json
-│   ├── tsconfig.json
-│   ├── tsconfig.node.json
-│   ├── vite.config.ts
 │   └── src/
 │       ├── App.tsx
+│       ├── lib/supabase.ts
 │       ├── main.tsx
 │       └── styles.css
 ├── .gitignore
