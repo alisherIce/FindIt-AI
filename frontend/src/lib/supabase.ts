@@ -101,6 +101,29 @@ async function request<T>(
 
 export async function getBackendSession(): Promise<BackendSession | null> {
   if (!isSupabaseConfigured) return null;
+
+  // Supabase email confirmation redirects back with tokens in the URL hash.
+  const callbackParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const callbackAccess = callbackParams.get("access_token");
+  const callbackRefresh = callbackParams.get("refresh_token");
+  if (callbackAccess && callbackRefresh) {
+    try {
+      const user = await request<BackendSession["user"]>("/auth/v1/user", {}, callbackAccess);
+      const expiresIn = Number(callbackParams.get("expires_in") ?? "3600");
+      const confirmed = storeSession({
+        access_token: callbackAccess,
+        refresh_token: callbackRefresh,
+        expires_in: Number.isFinite(expiresIn) ? expiresIn : 3600,
+        user
+      });
+      window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+      return confirmed;
+    } catch {
+      localStorage.removeItem(SUPABASE_SESSION_KEY);
+      throw new Error("Email confirmation could not be completed. Please sign in again.");
+    }
+  }
+
   const current = readStoredSession();
   if (!current) return null;
   if (current.expires_at > Math.floor(Date.now() / 1000) + 90) return current;
@@ -121,9 +144,10 @@ export async function getBackendSession(): Promise<BackendSession | null> {
 }
 
 export async function signUpWithPassword(email: string, password: string): Promise<BackendSession | null> {
+  const redirectTo = window.location.origin + window.location.pathname;
   const result = await request<Record<string, unknown>>("/auth/v1/signup", {
     method: "POST",
-    body: JSON.stringify({ email, password })
+    body: JSON.stringify({ email, password, options: { emailRedirectTo: redirectTo } })
   });
   if (typeof result.access_token === "string") return storeSession(result);
   return null;
