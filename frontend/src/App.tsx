@@ -270,7 +270,7 @@ async function compressImage(file: File): Promise<string> {
       };
 
       image.onload = () => {
-        const maxDimension = 1200;
+        const maxDimension = 900;
 
         const scale = Math.min(
           1,
@@ -304,7 +304,7 @@ async function compressImage(file: File): Promise<string> {
           canvas.height
         );
 
-        resolve(canvas.toDataURL("image/jpeg", 0.76));
+        resolve(canvas.toDataURL("image/jpeg", 0.66));
       };
 
       image.src = String(reader.result);
@@ -388,8 +388,9 @@ export default function App() {
     try {
       const stored = localStorage.getItem(DEMO_ITEMS_KEY);
       if (stored) {
-        const parsed = JSON.parse(stored) as Item[];
-        setItems(Array.isArray(parsed) ? parsed : createDemoItems());
+        const parsed: unknown = JSON.parse(stored);
+        if (!Array.isArray(parsed)) throw new Error("Saved reports have an unsupported format.");
+        setItems(parsed as Item[]);
       } else {
         const samples = createDemoItems();
         localStorage.setItem(DEMO_ITEMS_KEY, JSON.stringify(samples));
@@ -404,14 +405,40 @@ export default function App() {
   }
 
   useEffect(() => {
-    void loadItems();
-    const sessionId = localStorage.getItem(DEMO_SESSION_KEY);
-    if (sessionId) {
-      const users: DemoUser[] = JSON.parse(localStorage.getItem(DEMO_USERS_KEY) ?? "[]");
+    loadItems();
+    try {
+      const sessionId = localStorage.getItem(DEMO_SESSION_KEY);
+      const storedUsers: unknown = JSON.parse(localStorage.getItem(DEMO_USERS_KEY) ?? "[]");
+      const users = Array.isArray(storedUsers) ? storedUsers as DemoUser[] : [];
       const user = users.find((entry) => entry.id === sessionId);
       if (user) setCurrentUser({ id: user.id, email: user.email });
-      else localStorage.removeItem(DEMO_SESSION_KEY);
+      else {
+        localStorage.removeItem(DEMO_SESSION_KEY);
+        setToken("");
+      }
+    } catch {
+      localStorage.removeItem(DEMO_SESSION_KEY);
+      setToken("");
+      setCurrentUser(null);
     }
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === DEMO_ITEMS_KEY) loadItems();
+      if (event.key === DEMO_SESSION_KEY) {
+        const sessionId = event.newValue;
+        try {
+          const users: DemoUser[] = JSON.parse(localStorage.getItem(DEMO_USERS_KEY) ?? "[]");
+          const user = users.find((entry) => entry.id === sessionId);
+          setCurrentUser(user ? { id: user.id, email: user.email } : null);
+          setToken(sessionId ?? "");
+        } catch {
+          setCurrentUser(null);
+          setToken("");
+        }
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
   useEffect(() => {
@@ -447,7 +474,13 @@ const filteredItems = useMemo(() => {
       !pickedDate ||
       (
         Number.isFinite(itemTime) &&
-        new Date(itemTime).toISOString().slice(0, 10) === pickedDate
+        (() => {
+          const localDate = new Date(itemTime);
+          const year = localDate.getFullYear();
+          const month = String(localDate.getMonth() + 1).padStart(2, "0");
+          const day = String(localDate.getDate()).padStart(2, "0");
+          return `${year}-${month}-${day}` === pickedDate;
+        })()
       );
 
     const textMatches =
@@ -656,11 +689,13 @@ async function submitReport(event: FormEvent<HTMLFormElement>) {
 
   function showMatches(item: Item) {
     const oppositeType: ItemType = item.item_type === "lost" ? "found" : "lost";
-    const sourceWords = new Set(item.title.toLowerCase().split(/[^a-z0-9]+/).filter((word) => word.length > 2));
+    const sourceText = `${item.title} ${item.description} ${item.location}`.toLowerCase();
+    const sourceWords = new Set(sourceText.split(/[^a-z0-9]+/).filter((word) => word.length > 2));
     const ranked: Match[] = activeItems
       .filter((candidate) => candidate.id !== item.id && candidate.item_type === oppositeType)
       .map((candidate) => {
-        const candidateWords = candidate.title.toLowerCase().split(/[^a-z0-9]+/).filter((word) => word.length > 2);
+        const candidateText = `${candidate.title} ${candidate.description} ${candidate.location}`.toLowerCase();
+        const candidateWords = candidateText.split(/[^a-z0-9]+/).filter((word) => word.length > 2);
         const sharedWords = candidateWords.filter((word) => sourceWords.has(word));
         const reasons: string[] = [];
         let score = 0;
@@ -706,7 +741,7 @@ async function submitReport(event: FormEvent<HTMLFormElement>) {
   return (
     <div className="app-shell">
       <header className="topbar is-visible">
-        <a className="brand" href="/" aria-label="FindIt AI home">
+        <a className="brand" href="#discover" aria-label="FindIt AI home">
           <span className="brand-mark"><MapPin size={22} fill="currentColor" strokeWidth={2.5} /></span>
           <span className="brand-word">FindIt <span className="brand-ai">AI</span></span>
         </a>
@@ -717,7 +752,7 @@ async function submitReport(event: FormEvent<HTMLFormElement>) {
         </nav>
         <div className="topbar-right">
           <button className="country-nav" type="button" onClick={() => document.getElementById("country-select")?.focus()}><Globe2 size={17} /> Countries <ChevronDown size={14} /></button>
-          <button className="help-nav" type="button" onClick={() => document.getElementById("help-section")?.scrollIntoView({ behavior: "smooth" })}><CircleHelp size={18} /> Help</button>
+          <button className="help-nav" type="button" onClick={() => document.getElementById("faq-title")?.scrollIntoView({ behavior: "smooth" })}><CircleHelp size={18} /> Help</button>
           {currentUser ? (
             <div className="account-actions">
               <span className="account-email">{currentUser.email}</span>
@@ -779,17 +814,17 @@ async function submitReport(event: FormEvent<HTMLFormElement>) {
               <strong>One step closer.</strong>
               <small>Good things find their way home.</small>
             </div>
-            <div className="art-float"><BadgeCheck size={20} /><span>AI assisted<br />matching</span></div>
+            <div className="art-float"><BadgeCheck size={20} /><span>Smart item<br />matching</span></div>
           </div>
         </section>
 
         <section className="partners-section" aria-label="FindIt AI partner organizations">
-          <h2 className="partner-intro">Trusted by our campus and community partners</h2>
-          <p className="partners-subtitle">Working together to return belongings to the people who miss them</p>
+          <h2 className="partner-intro">Designed for campus and community organizations</h2>
+          <p className="partners-subtitle">Potential places where a shared lost-and-found service could connect people</p>
           <div className="partners-marquee">
             <div className="partners-track">
               <div className="partners-group">
-                <span className="partner-logo partner-gachon"><span className="partner-symbol">G</span> GACHON UNIVERSITY</span>
+                <span className="partner-logo partner-gachon"><span className="partner-symbol">C</span> CAMPUS COMMUNITIES</span>
                 <span className="partner-logo"><Building2 size={24}/> CAMPUS LIFE</span>
                 <span className="partner-logo"><GraduationCap size={25}/> STUDENT SERVICES</span>
                 <span className="partner-logo"><BookOpen size={24}/> UNIVERSITY LIBRARY</span>
@@ -797,7 +832,7 @@ async function submitReport(event: FormEvent<HTMLFormElement>) {
                 <span className="partner-logo"><ShieldCheck size={24}/> CAMPUS SECURITY</span>
               </div>
               <div className="partners-group" aria-hidden="true">
-                <span className="partner-logo partner-gachon"><span className="partner-symbol">G</span> GACHON UNIVERSITY</span>
+                <span className="partner-logo partner-gachon"><span className="partner-symbol">C</span> CAMPUS COMMUNITIES</span>
                 <span className="partner-logo"><Building2 size={24}/> CAMPUS LIFE</span>
                 <span className="partner-logo"><GraduationCap size={25}/> STUDENT SERVICES</span>
                 <span className="partner-logo"><BookOpen size={24}/> UNIVERSITY LIBRARY</span>
@@ -808,15 +843,15 @@ async function submitReport(event: FormEvent<HTMLFormElement>) {
           </div>
         </section>
 
-        <section className="proof-band" aria-label="FindIt AI community feedback">
+        <section className="proof-band" aria-label="FindIt AI product value">
           <div className="proof-copy">
-            <div className="review-stars" aria-label="Five star rating">★★★★★</div>
+            <div className="eyebrow">A CLEARER WAY TO SEARCH</div>
             <h2>Small things. Big relief.</h2>
-            <p>FindIt AI makes it easier to search reports, compare possible matches and reconnect with the things you thought were gone.</p>
+            <p>Browse reports and compare details to find possible leads in your community.</p>
           </div>
           <div className="proof-points review-quote">
-            <strong>“A simple way to turn a stressful lost-item search into a hopeful one.”</strong>
-            <span>— FindIt AI campus community</span>
+            <strong>Search first. Compare carefully. Arrange a safe handover.</strong>
+            <span>FindIt AI product principles</span>
           </div>
         </section>
 
@@ -824,17 +859,6 @@ async function submitReport(event: FormEvent<HTMLFormElement>) {
           <div className="stat-block"><span className="stat-icon stat-purple"><Package size={18} /></span><div><strong>{activeItems.length}</strong><span>Active reports</span></div></div>
           <div className="stat-block"><span className="stat-icon stat-orange"><Search size={18} /></span><div><strong>{lostCount}</strong><span>Items lost</span></div></div>
           <div className="stat-block"><span className="stat-icon stat-green"><Check size={18} /></span><div><strong>{foundCount}</strong><span>Items found</span></div></div>
-          <strong>
-  {activeItems.length === 0
-    ? "Your campus board is ready."
-    : "No reports found."}
-</strong>
-
-<p>
-  {activeItems.length === 0
-    ? "Be the first to post a lost or found item."
-    : "Try another search or filter."}
-</p>
         </section>
 
         <section className="list-section" id="community-board">
@@ -944,7 +968,7 @@ async function submitReport(event: FormEvent<HTMLFormElement>) {
           <h2>Lost & found, made simple.</h2>
           <div className="how-grid">
             <div className="how-card"><span className="how-number">01</span><span className="how-icon"><UploadCloud size={22} /></span><h3>Post a photo</h3><p>Share a photo and a few details about the item you lost or found.</p></div>
-            <div className="how-card"><span className="how-number">02</span><span className="how-icon"><Sparkles size={22} /></span><h3>Let AI look</h3><p>FindIt compares visual features and ranks reports that may match.</p></div>
+            <div className="how-card"><span className="how-number">02</span><span className="how-icon"><Sparkles size={22} /></span><h3>Compare possible matches</h3><p>FindIt ranks opposite-type reports using item names, categories, campus and location details.</p></div>
             <div className="how-card"><span className="how-number">03</span><span className="how-icon"><BadgeCheck size={22} /></span><h3>Verify & reconnect</h3><p>Check the details privately and arrange a safe handover.</p></div>
           </div>
         </section>
@@ -1095,7 +1119,7 @@ decoding="async"/>
           </div>
           <div className="faq-list">
             <details><summary>How do I report something I lost?</summary><p>Choose “I lost something”, add the item name, category, last-seen location and a photo, then submit your report.</p></details>
-            <details><summary>How does visual matching work?</summary><p>When available, the matching service compares item images and returns possible matches. Always verify ownership using details that are not public.</p></details>
+            <details><summary>How are possible matches ranked?</summary><p>This browser demo compares item names, descriptions, categories, campus, country and location. It does not run an AI model or compare image contents.</p></details>
             <details><summary>Can I report an item I found?</summary><p>Yes. Select “I found something” and include where and when you found it so its owner has useful clues.</p></details>
             <details><summary>Is a visual match proof that an item is mine?</summary><p>No. A match is only a suggestion. Confirm distinctive details privately before arranging a safe handover.</p></details>
           </div>
@@ -1105,7 +1129,7 @@ decoding="async"/>
       <footer className="site-footer">
         <div className="footer-main">
           <div className="footer-brand-column">
-            <a className="brand" href="/" aria-label="FindIt AI home"><span className="brand-mark"><MapPin size={20} fill="currentColor" /></span><span className="brand-word">FindIt <span className="brand-ai">AI</span></span></a>
+            <a className="brand" href="#discover" aria-label="FindIt AI home"><span className="brand-mark"><MapPin size={20} fill="currentColor" /></span><span className="brand-word">FindIt <span className="brand-ai">AI</span></span></a>
             <p>Helping campus communities bring lost belongings back to the people who matter.</p>
             <span className="footer-status"><span className="live-dot" /> FindIt AI community platform</span>
           </div>
