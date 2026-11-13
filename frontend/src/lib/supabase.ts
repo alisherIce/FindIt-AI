@@ -252,3 +252,66 @@ export async function resolveBackendItem(
     accessToken
   );
 }
+
+export type BackendContactRequest = {
+  id: string;
+  item_id: string;
+  owner_id: string;
+  sender_id: string;
+  message: string;
+  owner_reply: string | null;
+  status: "pending" | "accepted" | "declined";
+  created_at: string;
+};
+
+export async function createContactRequest(
+  itemId: string,
+  ownerId: string,
+  senderId: string,
+  message: string,
+  accessToken: string
+): Promise<BackendContactRequest> {
+  const rows = await request<BackendContactRequest[]>(
+    "/rest/v1/item_contact_requests",
+    {
+      method: "POST",
+      headers: { Prefer: "return=representation" },
+      body: JSON.stringify({
+        item_id: itemId,
+        owner_id: ownerId,
+        sender_id: senderId,
+        message
+      })
+    },
+    accessToken
+  );
+  if (!rows[0]) throw new Error("The contact request could not be saved.");
+  return rows[0];
+}
+
+export async function listContactRequests(
+  userId: string,
+  accessToken: string
+): Promise<BackendContactRequest[]> {
+  const user = encodeURIComponent(userId);
+  const query = `?select=id,item_id,owner_id,sender_id,message,owner_reply,status,created_at&or=(sender_id.eq.${user},owner_id.eq.${user})&order=created_at.desc&limit=100`;
+  return request<BackendContactRequest[]>(`/rest/v1/item_contact_requests${query}`, {}, accessToken);
+}
+
+export async function respondToContactRequest(
+  requestId: string,
+  ownerId: string,
+  status: "accepted" | "declined",
+  reply: string,
+  accessToken: string
+): Promise<void> {
+  await request<void>(
+    `/rest/v1/item_contact_requests?id=eq.${encodeURIComponent(requestId)}&owner_id=eq.${encodeURIComponent(ownerId)}`,
+    {
+      method: "PATCH",
+      headers: { Prefer: "return=minimal" },
+      body: JSON.stringify({ status, owner_reply: reply })
+    },
+    accessToken
+  );
+}
