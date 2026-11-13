@@ -52,7 +52,10 @@ type Item = {
 };
 
 
-type Match = Item & { visual_similarity: number };
+type Match = Item & {
+  matchScore: number;
+  matchReasons: string[];
+};
 type CurrentUser = { id: string; email: string };
 
 const hotspotCulture: Record<string, { country: string; image: string; alt: string; title: string; description: string; source: string; sourceLabel: string }> = {
@@ -366,7 +369,6 @@ export default function App() {
   const [previewUrl, setPreviewUrl] = useState("");
   const [matchesFor, setMatchesFor] = useState<Item | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
-  const [loadingMatches, setLoadingMatches] = useState(false);
   const [notice, setNotice] = useState("");
   const [country, setCountry] = useState("South Korea");
   const [showResultsFilters, setShowResultsFilters] = useState(false);
@@ -617,27 +619,7 @@ async function submitReport(event: FormEvent<HTMLFormElement>) {
 }
 
 
-  async function showMatches(item: Item) {
-    setMatchesFor(item);
-    setMatches([]);
-    setLoadingMatches(true);
-    const terms = (value: string) => new Set(value.toLowerCase().split(/[^a-z0-9]+/).filter((word) => word.length > 2));
-    const sourceTerms = terms(`${item.title} ${item.category} ${item.description}`);
-    const suggestions = items
-      .filter((candidate) => candidate.id !== item.id && candidate.item_type !== item.item_type && candidate.status === "active")
-      .map((candidate) => {
-        const candidateTerms = terms(`${candidate.title} ${candidate.category} ${candidate.description}`);
-        const overlap = [...sourceTerms].filter((word) => candidateTerms.has(word)).length;
-        const categoryBonus = candidate.category.toLowerCase() === item.category.toLowerCase() ? 0.35 : 0;
-        const score = Math.min(0.98, 0.25 + overlap * 0.16 + categoryBonus);
-        return { ...candidate, visual_similarity: score };
-      })
-      .sort((a, b) => b.visual_similarity - a.visual_similarity)
-      .slice(0, 5);
-    setMatches(suggestions);
-    setLoadingMatches(false);
-  }
-
+ showMatches()
   async function resolveItem(item: Item) {
     if (item.owner_id !== currentUser?.id) return;
     const nextItems = items.map((entry) => entry.id === item.id ? { ...entry, status: "resolved" } : entry);
@@ -1110,25 +1092,78 @@ async function submitReport(event: FormEvent<HTMLFormElement>) {
       {matchesFor && (
         <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setMatchesFor(null); }}>
           <section className="modal matches-modal" role="dialog" aria-modal="true" aria-labelledby="matches-title">
-            <div className="modal-header">
-              <div><div className="eyebrow"><Sparkles size={13} /> AI VISUAL SEARCH</div><h2 id="matches-title">Possible matches</h2><p>For “{matchesFor.title}” · {matchesFor.item_type} report</p></div>
-              <button className="icon-button" onClick={() => setMatchesFor(null)} aria-label="Close matches"><X size={20} /></button>
-            </div>
-            {loadingMatches ? <div className="empty-state compact"><div className="loader" /><strong>Comparing item photos...</strong><p>The first search may take a little longer while AI loads.</p></div> : matches.length === 0 ? <div className="empty-state compact"><span className="empty-icon"><Search size={24} /></span><strong>No possible matches yet</strong><p>We’ll have more to compare as new reports are added.</p></div> : (
-              <div className="match-results">
-                {matches.map((match) => (
-                  <div className="match-result" key={match.id}>
-                    <div className="match-result-icon"><Package size={22} /></div>
-                    <div className="match-result-info"><strong>{match.title}</strong><span>{match.item_type} · {match.category}</span><small><MapPin size={12} /> {match.campus} · {match.location}</small></div>
-                    <div className="similarity"><strong>{Math.round(Math.max(0, Math.min(1, match.visual_similarity)) * 100)}%</strong><span>visual score</span></div>
-                  </div>
-                ))}
-              </div>
-            )}
-            <p className="match-disclaimer"><ShieldCheck size={15} /> AI similarity is only a suggestion, not proof of ownership. Verify privately before arranging a handover.</p>
-          </section>
-        </div>
-      )}
+            
+<div className="modal-header">
+  <div>
+    <div className="eyebrow">
+      <Search size={13} /> LOCAL TEXT MATCHING
     </div>
-  );
-}
+
+    <h2 id="matches-title">Possible matches</h2>
+
+    <p>
+      For "{matchesFor.title}" · {matchesFor.item_type} report
+    </p>
+  </div>
+
+  <button
+    className="icon-button"
+    onClick={() => setMatchesFor(null)}
+    aria-label="Close matches"
+  >
+    <X size={20} />
+  </button>
+</div>
+
+{matches.length === 0 ? (
+  <div className="empty-state compact">
+    <span className="empty-icon">
+      <Search size={24} />
+    </span>
+    <strong>No strong matches yet</strong>
+    <p>
+      Try adding more details or check again when new
+      reports are available.
+    </p>
+  </div>
+) : (
+  <div className="match-results">
+    {matches.map((match) => (
+      <div className="match-result" key={match.id}>
+        <div className="match-result-icon">
+          <Package size={22} />
+        </div>
+
+        <div className="match-result-info">
+          <strong>{match.title}</strong>
+
+          <span>
+            {match.item_type} · {match.category}
+          </span>
+
+          <small>
+            <MapPin size={12} />
+            {match.campus} · {match.location}
+          </small>
+
+          <small>
+            {match.matchReasons.join(" · ")}
+          </small>
+        </div>
+
+        <div className="similarity">
+          <strong>{match.matchScore}/100</strong>
+          <span>match points</span>
+        </div>
+      </div>
+    ))}
+  </div>
+)}
+
+<p className="match-disclaimer">
+  <ShieldCheck size={15} />
+  Suggestions are ranked using text and location details.
+  This is not AI or image recognition, and a match does
+  not prove ownership.
+</p>
+
