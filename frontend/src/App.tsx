@@ -432,21 +432,61 @@ export default function App() {
     return () => URL.revokeObjectURL(url);
   }, [selectedFile]);
 
-  const filteredItems = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    return items.filter((item) => item.status === "active").filter((item) => {
-      const typeMatches = filter === "all" || item.item_type === filter;
-      const dateMatches = !pickedDate || new Date(item.created_at).toISOString().slice(0, 10) === pickedDate;
-      const textMatches =
-        !term ||
-        [item.title, item.category, item.campus, item.location, item.description]
-          .some((value) => value.toLowerCase().includes(term));
-      return typeMatches && textMatches && dateMatches;
-    });
-  }, [items, filter, search, pickedDate]);
+  
+const activeItems = useMemo(
+  () => items.filter((item) => item.status === "active"),
+  [items]
+);
 
-  const lostCount = items.filter((item) => item.item_type === "lost").length;
-  const foundCount = items.filter((item) => item.item_type === "found").length;
+const filteredItems = useMemo(() => {
+  const term = search.trim().toLowerCase();
+
+  return activeItems.filter((item) => {
+    const typeMatches =
+      filter === "all" || item.item_type === filter;
+
+    const countryMatches =
+      country === "All countries" ||
+      (item.country ?? "South Korea") === country;
+
+    const itemTime = Date.parse(item.created_at);
+
+    const dateMatches =
+      !pickedDate ||
+      (
+        Number.isFinite(itemTime) &&
+        new Date(itemTime).toISOString().slice(0, 10) === pickedDate
+      );
+
+    const textMatches =
+      !term ||
+      [
+        item.title,
+        item.category,
+        item.campus,
+        item.location,
+        item.description
+      ].some((value) =>
+        value.toLowerCase().includes(term)
+      );
+
+    return (
+      typeMatches &&
+      countryMatches &&
+      dateMatches &&
+      textMatches
+    );
+  });
+}, [activeItems, filter, country, search, pickedDate]);
+
+const lostCount = activeItems.filter(
+  (item) => item.item_type === "lost"
+).length;
+
+const foundCount = activeItems.filter(
+  (item) => item.item_type === "found"
+).length;
+
 
   function updateForm(field: keyof typeof form, value: string) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -724,10 +764,20 @@ async function submitReport(event: FormEvent<HTMLFormElement>) {
         </section>
 
         <section className="stats-row" aria-label="Community report statistics">
-          <div className="stat-block"><span className="stat-icon stat-purple"><Package size={18} /></span><div><strong>{items.length}</strong><span>Active reports</span></div></div>
+          <div className="stat-block"><span className="stat-icon stat-purple"><Package size={18} /></span><div><strong>{activeItems.length}</strong><span>Active reports</span></div></div>
           <div className="stat-block"><span className="stat-icon stat-orange"><Search size={18} /></span><div><strong>{lostCount}</strong><span>Items lost</span></div></div>
           <div className="stat-block"><span className="stat-icon stat-green"><Check size={18} /></span><div><strong>{foundCount}</strong><span>Items found</span></div></div>
-          <div className="stats-note"><Sparkles size={16} /> Smart match suggestions</div>
+          <strong>
+  {activeItems.length === 0
+    ? "Your campus board is ready."
+    : "No reports found."}
+</strong>
+
+<p>
+  {activeItems.length === 0
+    ? "Be the first to post a lost or found item."
+    : "Try another search or filter."}
+</p>
         </section>
 
         <section className="list-section" id="community-board">
