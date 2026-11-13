@@ -3,9 +3,9 @@ const env = (import.meta as ImportMeta & {
 }).env;
 
 const SUPABASE_URL = (env.VITE_SUPABASE_URL ?? "").replace(/\/$/, "");
-const SUPABASE_ANON_KEY = env.VITE_SUPABASE_ANON_KEY ?? "";
+const SUPABASE_PUBLISHABLE_KEY = env.VITE_SUPABASE_PUBLISHABLE_KEY ?? env.VITE_SUPABASE_ANON_KEY ?? "";
 
-export const isSupabaseConfigured = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+export const isSupabaseConfigured = Boolean(SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY);
 export const SUPABASE_SESSION_KEY = "findit_supabase_session";
 
 export type BackendSession = {
@@ -75,9 +75,9 @@ async function request<T>(
     throw new Error("Cloud features are not configured yet. Add the Supabase project URL and publishable anon key.");
   }
   const headers = new Headers(options.headers);
-  headers.set("apikey", SUPABASE_ANON_KEY);
+  headers.set("apikey", SUPABASE_PUBLISHABLE_KEY);
   if (accessToken) headers.set("Authorization", `Bearer ${accessToken}`);
-  else headers.set("Authorization", `Bearer ${SUPABASE_ANON_KEY}`);
+  else headers.delete("Authorization");
   if (options.body && !(options.body instanceof Blob) && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
