@@ -41,6 +41,7 @@ type Item = {
   title: string;
   category: string;
   campus: string;
+  country?: string;
   location: string;
   description: string;
   image_filename: string;
@@ -49,6 +50,7 @@ type Item = {
   owner_id: string | null;
   created_at: string;
 };
+
 
 type Match = Item & { visual_similarity: number };
 type CurrentUser = { id: string; email: string };
@@ -247,6 +249,66 @@ function iconForCategory(category: string) {
   const key = category.toLowerCase();
   const match = Object.entries(categoryIcons).find(([name]) => key.includes(name));
   return match?.[1] ?? Package;
+}
+
+async function compressImage(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onerror = () => {
+      reject(new Error("Could not read the selected image."));
+    };
+
+    reader.onload = () => {
+      const image = new Image();
+
+      image.onerror = () => {
+        reject(new Error("The selected image is invalid."));
+      };
+
+      image.onload = () => {
+        const maxDimension = 1200;
+
+        const scale = Math.min(
+          1,
+          maxDimension / Math.max(image.width, image.height)
+        );
+
+        const canvas = document.createElement("canvas");
+
+        canvas.width = Math.max(
+          1,
+          Math.round(image.width * scale)
+        );
+
+        canvas.height = Math.max(
+          1,
+          Math.round(image.height * scale)
+        );
+
+        const context = canvas.getContext("2d");
+
+        if (!context) {
+          reject(new Error("Image compression is unavailable."));
+          return;
+        }
+
+        context.drawImage(
+          image,
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        );
+
+        resolve(canvas.toDataURL("image/jpeg", 0.76));
+      };
+
+      image.src = String(reader.result);
+    };
+
+    reader.readAsDataURL(file);
+  });
 }
 
 function formatDate(value: string) {
@@ -455,41 +517,65 @@ export default function App() {
     setNotice("You have signed out.");
   }
 
-  async function submitReport(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!selectedFile) {
-      setError("Please choose a photo of the item.");
-      return;
-    }
+  
+async function submitReport(event: FormEvent<HTMLFormElement>) {
+  event.preventDefault();
 
-    setSubmitting(true);
-    setError("");
-    try {
-      const nextItem: Item = {
-        id: crypto.randomUUID(),
-        item_type: reportType,
-        title: form.title.trim(),
-        category: form.category,
-        campus: form.campus.trim(),
-        location: form.location.trim(),
-        description: form.description.trim(),
-        image_filename: selectedFile.name,
-        status: "active",
-        owner_id: currentUser?.id ?? null,
-        created_at: new Date().toISOString()
-      };
-      const nextItems = [nextItem, ...items];
-      localStorage.setItem(DEMO_ITEMS_KEY, JSON.stringify(nextItems));
-      setItems(nextItems);
-      setShowReport(false);
-      setSelectedFile(null);
-      setNotice("Your report was saved in this browser's demo board.");
-    } catch {
-      setError("Could not save your report. Your browser storage may be full.");
-    } finally {
-      setSubmitting(false);
-    }
+  if (!selectedFile) {
+    setError("Please choose a photo of the item.");
+    return;
   }
+
+  setSubmitting(true);
+  setError("");
+
+  try {
+    const compressedImage = await compressImage(selectedFile);
+
+    const nextItem: Item = {
+      id: crypto.randomUUID(),
+      item_type: reportType,
+      title: form.title.trim(),
+      category: form.category,
+      campus: form.campus.trim(),
+      country: country === "All countries"
+        ? "South Korea"
+        : country,
+      location: form.location.trim(),
+      description: form.description.trim(),
+      image_filename: selectedFile.name,
+      image_url: compressedImage,
+      status: "active",
+      owner_id: currentUser?.id ?? null,
+      created_at: new Date().toISOString()
+    };
+
+    const nextItems = [nextItem, ...items];
+
+    localStorage.setItem(
+      DEMO_ITEMS_KEY,
+      JSON.stringify(nextItems)
+    );
+
+    setItems(nextItems);
+    setShowReport(false);
+    setSelectedFile(null);
+
+    setNotice(
+      "Your report and photo were saved in this browser."
+    );
+
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : "Could not save your report. Browser storage may be full."
+    );
+  } finally {
+    setSubmitting(false);
+  }
+}
+
 
   async function showMatches(item: Item) {
     setMatchesFor(item);
@@ -962,10 +1048,8 @@ export default function App() {
               <label className="field-label">Item photo <span className="required-label">Required</span>
                 <span className="upload-box">
                   {previewUrl ? <img src={previewUrl} alt="Selected item preview" className="upload-preview" /> : <span className="upload-placeholder"><UploadCloud size={25} /><strong>Choose an image</strong><small>JPG, PNG or WEBP · up to 5 MB</small></span>}
-                  <input type="file" accept="image/jpeg,image/png,image/webp" required onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)} />
-                  {previewUrl && <span className="change-photo">Change photo</span>}
-                </span>
-              </label>
+                  <input type="file" accept="image/jpeg,image/png,image/webp" required onChange={(event) => {const file = event.target.files?.[0] ?? null; if (!file) {etSelectedFile(null); return;} const allowedTypes = ["image/jpeg", "image/png", "image/webp"]; if (!allowedTypes.includes(file.type)) {setSelectedFile(null); setError("Choose a JPG, PNG, or WEBP image.") event.currentTarget.value = ""; return;} if (file.size > 5 * 1024 * 1024) {setSelectedFile(null); setError("Your image must be smaller than 5 MB.");event.currentTarget.value = ""; return;}setError("");setSelectedFile(file);}}/>
+               </label>
               <p className="privacy-note"><ShieldCheck size={15} /> Photos are stored privately. Avoid including personal contact details or sensitive information in the description.</p>
               <button className="button button-primary submit-button" type="submit" disabled={submitting}>{submitting ? "Submitting report..." : "Submit report"} <ArrowRight size={17} /></button>
             </form>
