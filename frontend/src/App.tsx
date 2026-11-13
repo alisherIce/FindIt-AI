@@ -375,12 +375,13 @@ export default function App() {
   const [heroImageIndex, setHeroImageIndex] = useState(0);
   const [networkCategory, setNetworkCategory] = useState("All");
   const [activeHotspot, setActiveHotspot] = useState("Seoul");
-  const heroImages = [
-    "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=2200&q=85",
-    "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=2200&q=85",
-    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=2200&q=85",
-    "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=2200&q=85"
-  ];
+  const HERO_IMAGES = [
+  "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1600&q=75",
+  "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1600&q=75",
+  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1600&q=75",
+  "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=1600&q=75"
+];
+
 
   const storedUsers: Array<CurrentUser & {
   password?: string;
@@ -706,7 +707,7 @@ async function submitReport(event: FormEvent<HTMLFormElement>) {
 
       <main>
         <section className="hero" id="discover">
-          <img key={heroImageIndex} className="hero-photo" src={heroImages[heroImageIndex]} alt="" aria-hidden="true" />
+          <img key={heroImageIndex} className="hero-photo" src={HERO_IMAGES[heroImageIndex]} alt="" aria-hidden="true" />
           <div className="hero-copy">
             <div className="eyebrow"><Sparkles size={14} /> SMART CAMPUS LOST & FOUND</div>
             <h1>Lost something?<br /><span>Let’s bring it back.</span></h1>
@@ -942,7 +943,8 @@ async function submitReport(event: FormEvent<HTMLFormElement>) {
               <div className="world-map-panel">
                 <div className="world-map-topline"><span><span className="map-live-dot"/> GLOBAL DISCOVERY MAP</span><small>26 city hotspots · Approximate locations</small></div>
                 <div className="world-map-canvas">
-                  <img className="world-map-image" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/BlankMap-Equirectangular.svg/960px-BlankMap-Equirectangular.svg.png" alt="Accurate equirectangular world map with country borders" loading="eager"/>
+                  <img className="world-map-image" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/BlankMap-Equirectangular.svg/960px-BlankMap-Equirectangular.svg.png" alt="Accurate equirectangular world map with country borders" loading="lazy"
+decoding="async"/>
                   {([
                     {city:"Vancouver",lat:49.2827,lon:-123.1207,count:"18"},
                     {city:"New York",lat:40.7128,lon:-74.0060,count:"42"},
