@@ -25,6 +25,9 @@ create index if not exists items_owner_created_at_idx
 
 alter table public.items enable row level security;
 
+grant select on table public.items to anon, authenticated;
+grant insert, update, delete on table public.items to authenticated;
+
 drop policy if exists "Anyone can view active reports" on public.items;
 create policy "Anyone can view active reports"
   on public.items for select
