@@ -354,6 +354,7 @@ export default function App() {
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [authEmail, setAuthEmail] = useState("");
+  const [form, setForm] = useState({ title: "", category: "Electronics", campus: "Gachon University", location: "", description: "" });
   const [authError, setAuthError] = useState("");
   const [authBusy, setAuthBusy] = useState(false);
   const [pendingReportType, setPendingReportType] = useState<ItemType | null>(null);
@@ -383,37 +384,24 @@ export default function App() {
 ];
 
 
-  const storedUsers: Array<CurrentUser & {
-  password?: string;
-}> = JSON.parse(
-  localStorage.getItem(DEMO_USERS_KEY) ?? "[]"
-);
-
-// Keep only non-secret profile information.
-// This also removes passwords left by the old demo version.
-const users: DemoUser[] = storedUsers.map(
-  ({ id, email }) => ({ id, email })
-);
-
-localStorage.setItem(
-  DEMO_USERS_KEY,
-  JSON.stringify(users)
-);
-
-if (sessionId) {
-  const user = users.find(
-    (entry) => entry.id === sessionId
-  );
-
-  if (user) {
-    setCurrentUser({
-      id: user.id,
-      email: user.email
-    });
-  } else {
-    localStorage.removeItem(DEMO_SESSION_KEY);
+  function loadItems() {
+    try {
+      const stored = localStorage.getItem(DEMO_ITEMS_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored) as Item[];
+        setItems(Array.isArray(parsed) ? parsed : createDemoItems());
+      } else {
+        const samples = createDemoItems();
+        localStorage.setItem(DEMO_ITEMS_KEY, JSON.stringify(samples));
+        setItems(samples);
+      }
+    } catch {
+      setItems(createDemoItems());
+      setError("Saved browser data could not be read. Showing sample reports instead.");
+    } finally {
+      setLoading(false);
+    }
   }
-}
 
   useEffect(() => {
     void loadItems();
@@ -666,8 +654,47 @@ async function submitReport(event: FormEvent<HTMLFormElement>) {
   }
 }
 
+  function showMatches(item: Item) {
+    const oppositeType: ItemType = item.item_type === "lost" ? "found" : "lost";
+    const sourceWords = new Set(item.title.toLowerCase().split(/[^a-z0-9]+/).filter((word) => word.length > 2));
+    const ranked: Match[] = activeItems
+      .filter((candidate) => candidate.id !== item.id && candidate.item_type === oppositeType)
+      .map((candidate) => {
+        const candidateWords = candidate.title.toLowerCase().split(/[^a-z0-9]+/).filter((word) => word.length > 2);
+        const sharedWords = candidateWords.filter((word) => sourceWords.has(word));
+        const reasons: string[] = [];
+        let score = 0;
+        if (candidate.category.toLowerCase() === item.category.toLowerCase()) {
+          score += 25;
+          reasons.push("Same category");
+        }
+        if (sharedWords.length) {
+          score += Math.min(45, sharedWords.length * 15);
+          reasons.push("Similar item description");
+        }
+        if (candidate.campus.toLowerCase() === item.campus.toLowerCase()) {
+          score += 20;
+          reasons.push("Same campus");
+        }
+        const sourceLocation = item.location.toLowerCase();
+        const candidateLocation = candidate.location.toLowerCase();
+        if (sourceLocation === candidateLocation || sourceLocation.includes(candidateLocation) || candidateLocation.includes(sourceLocation)) {
+          score += 10;
+          reasons.push("Similar location");
+        }
+        if (item.country && candidate.country && item.country === candidate.country) {
+          score += 5;
+          reasons.push("Same country");
+        }
+        return { ...candidate, matchScore: Math.min(100, score), matchReasons: reasons };
+      })
+      .filter((candidate) => candidate.matchScore >= 25)
+      .sort((a, b) => b.matchScore - a.matchScore)
+      .slice(0, 5);
+    setMatches(ranked);
+    setMatchesFor(item);
+  }
 
- showMatches()
   async function resolveItem(item: Item) {
     if (item.owner_id !== currentUser?.id) return;
     const nextItems = items.map((entry) => entry.id === item.id ? { ...entry, status: "resolved" } : entry);
@@ -1123,7 +1150,7 @@ decoding="async"/>
     placeholder="you@university.edu"
   />
 </label>
-              <label className="field-label">Password<input type="password" required minLength={8} maxLength={128} autoComplete={authMode === "login" ? "current-password" : "new-password"} value={authPassword} onChange={(event) => setAuthPassword(event.target.value)} placeholder="At least 8 characters" /></label>
+              <p className="privacy-note">This prototype uses a local browser profile only. Do not use a real password or sensitive account information.</p>
               <button className="button button-primary submit-button" type="submit" disabled={authBusy}>{authBusy ? "Please wait..." : authMode === "login" ? "Sign in" : "Create account"} <ArrowRight size={17} /></button>
             </form>
             <p className="auth-switch">{authMode === "login" ? "New to FindIt AI?" : "Already have an account?"} <button onClick={() => { setAuthMode(authMode === "login" ? "register" : "login"); setAuthError(""); }}>{authMode === "login" ? "Create an account" : "Sign in"}</button></p>
@@ -1153,7 +1180,33 @@ decoding="async"/>
               <label className="field-label">Item photo <span className="required-label">Required</span>
                 <span className="upload-box">
                   {previewUrl ? <img src={previewUrl} alt="Selected item preview" className="upload-preview" /> : <span className="upload-placeholder"><UploadCloud size={25} /><strong>Choose an image</strong><small>JPG, PNG or WEBP · up to 5 MB</small></span>}
-                  <input type="file" accept="image/jpeg,image/png,image/webp" required onChange={(event) => {const file = event.target.files?.[0] ?? null; if (!file) {etSelectedFile(null); return;} const allowedTypes = ["image/jpeg", "image/png", "image/webp"]; if (!allowedTypes.includes(file.type)) {setSelectedFile(null); setError("Choose a JPG, PNG, or WEBP image.") event.currentTarget.value = ""; return;} if (file.size > 5 * 1024 * 1024) {setSelectedFile(null); setError("Your image must be smaller than 5 MB.");event.currentTarget.value = ""; return;}setError("");setSelectedFile(file);}}/>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    required
+                    onChange={(event) => {
+                      const file = event.currentTarget.files?.[0] ?? null;
+                      if (!file) {
+                        setSelectedFile(null);
+                        return;
+                      }
+                      const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+                      if (!allowedTypes.includes(file.type)) {
+                        setSelectedFile(null);
+                        setError("Choose a JPG, PNG, or WEBP image.");
+                        event.currentTarget.value = "";
+                        return;
+                      }
+                      if (file.size > 5 * 1024 * 1024) {
+                        setSelectedFile(null);
+                        setError("Your image must be smaller than 5 MB.");
+                        event.currentTarget.value = "";
+                        return;
+                      }
+                      setError("");
+                      setSelectedFile(file);
+                    }}
+                  />
                </label>
               <p className="privacy-note"><ShieldCheck size={15} /> Photos are stored privately. Avoid including personal contact details or sensitive information in the description.</p>
               <button className="button button-primary submit-button" type="submit" disabled={submitting}>{submitting ? "Submitting report..." : "Submit report"} <ArrowRight size={17} /></button>
