@@ -11,7 +11,11 @@ import {
   signInWithPassword,
   signOutFromBackend,
   signUpWithPassword,
-  uploadItemPhoto
+  uploadItemPhoto,
+  createContactRequest,
+  listContactRequests,
+  respondToContactRequest,
+  type BackendContactRequest
 } from "./lib/supabase";
 import {
   ArrowRight,
@@ -388,6 +392,11 @@ export default function App() {
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
+  const [contactRequests, setContactRequests] = useState<BackendContactRequest[]>([]);
+  const [showInbox, setShowInbox] = useState(false);
+  const [contactItem, setContactItem] = useState<Item | null>(null);
+  const [contactMessage, setContactMessage] = useState("");
+  const [contactBusy, setContactBusy] = useState(false);
   const [form, setForm] = useState({ title: "", category: "Electronics", campus: "Gachon University", location: "", description: "" });
   const [authError, setAuthError] = useState("");
   const [authBusy, setAuthBusy] = useState(false);
@@ -514,6 +523,24 @@ export default function App() {
       window.removeEventListener("storage", handleStorage);
     };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const refresh = async () => {
+      if (!isSupabaseConfigured || !backendSession || !currentUser) {
+        setContactRequests([]);
+        return;
+      }
+      try {
+        const rows = await listContactRequests(currentUser.id, backendSession.access_token);
+        if (!cancelled) setContactRequests(rows);
+      } catch (err) {
+        if (!cancelled) setError(err instanceof Error ? err.message : "Could not load your inbox.");
+      }
+    };
+    void refresh();
+    return () => { cancelled = true; };
+  }, [backendSession, currentUser?.id]);
 
   useEffect(() => {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -821,6 +848,67 @@ async function submitReport(event: FormEvent<HTMLFormElement>) {
     setMatchesFor(item);
   }
 
+  function openContact(item: Item) {
+    if (!isSupabaseConfigured || !backendSession || !currentUser) {
+      setNotice("Secure contact requests need a signed-in account in cloud mode.");
+      if (!currentUser) {
+        setAuthError("");
+        setAuthMode("login");
+        setShowAuth(true);
+      }
+      return;
+    }
+    if (item.owner_id === currentUser.id) {
+      setNotice("This is your own report.");
+      return;
+    }
+    setContactItem(item);
+    setContactMessage(`Hello, I may have information about your ${item.title.toLowerCase()} report. Could we verify a few details?`);
+  }
+
+  async function sendContactRequest(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!contactItem || !currentUser || !backendSession) return;
+    setContactBusy(true);
+    setError("");
+    try {
+      await createContactRequest(
+        contactItem.id,
+        contactItem.owner_id ?? "",
+        currentUser.id,
+        contactMessage.trim(),
+        backendSession.access_token
+      );
+      setContactItem(null);
+      setContactMessage("");
+      setNotice("Your private contact request was sent to the report owner.");
+      const rows = await listContactRequests(currentUser.id, backendSession.access_token);
+      setContactRequests(rows);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not send your contact request.");
+    } finally {
+      setContactBusy(false);
+    }
+  }
+
+  async function updateContactRequest(request: BackendContactRequest, status: "accepted" | "declined") {
+    if (!currentUser || !backendSession) return;
+    const reply = status === "accepted"
+      ? "Your request was accepted. Please reply with a safe way to arrange a handover."
+      : "Thank you for reaching out. I cannot verify this match at the moment.";
+    setContactBusy(true);
+    try {
+      await respondToContactRequest(request.id, currentUser.id, status, reply, backendSession.access_token);
+      const rows = await listContactRequests(currentUser.id, backendSession.access_token);
+      setContactRequests(rows);
+      setNotice(status === "accepted" ? "Contact request accepted." : "Contact request declined.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not update this request.");
+    } finally {
+      setContactBusy(false);
+    }
+  }
+
   async function resolveItem(item: Item) {
     if (item.owner_id !== currentUser?.id) return;
     try {
@@ -854,6 +942,7 @@ async function submitReport(event: FormEvent<HTMLFormElement>) {
         <div className="topbar-right">
           <button className="country-nav" type="button" onClick={() => document.getElementById("country-select")?.focus()}><Globe2 size={17} /> Countries <ChevronDown size={14} /></button>
           <button className="help-nav" type="button" onClick={() => document.getElementById("faq-title")?.scrollIntoView({ behavior: "smooth" })}><CircleHelp size={18} /> Help</button>
+          {isSupabaseConfigured && currentUser && <button className="button button-outline button-small" type="button" onClick={() => setShowInbox(true)}>Inbox {contactRequests.filter((request) => request.owner_id === currentUser.id && request.status === "pending").length > 0 ? `(${contactRequests.filter((request) => request.owner_id === currentUser.id && request.status === "pending").length})` : ""}</button>}
           {currentUser ? (
             <div className="account-actions">
               <span className="account-email">{currentUser.email}</span>
@@ -1422,6 +1511,7 @@ decoding="async"/>
         <div className="similarity">
           <strong>{match.matchScore}/100</strong>
           <span>match points</span>
+          {match.owner_id !== currentUser?.id && <button className="match-link" type="button" onClick={() => openContact(match)}>Contact owner</button>}
         </div>
       </div>
     ))}
@@ -1438,6 +1528,61 @@ decoding="async"/>
           </section>
         </div>
       )}
+      {contactItem && (
+        <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setContactItem(null); }}>
+          <section className="modal report-modal" role="dialog" aria-modal="true" aria-labelledby="contact-title">
+            <div className="modal-header">
+              <div><div className="eyebrow">PRIVATE CONTACT REQUEST</div><h2 id="contact-title">Contact the report owner</h2><p>{contactItem.title} · {contactItem.campus}</p></div>
+              <button className="icon-button" type="button" onClick={() => setContactItem(null)} aria-label="Close contact form"><X size={20}/></button>
+            </div>
+            <form className="report-form" onSubmit={sendContactRequest}>
+              <label className="field-label">Your message
+                <textarea minLength={10} maxLength={1200} required rows={5} value={contactMessage} onChange={(event) => setContactMessage(event.target.value)} placeholder="Explain why you think this may be a match. Do not share sensitive personal information." />
+              </label>
+              <p className="privacy-note"><ShieldCheck size={15}/> Your email address is not shown publicly. Only the report owner can read this private request.</p>
+              <button className="button button-primary submit-button" type="submit" disabled={contactBusy}>{contactBusy ? "Sending..." : "Send private request"} <ArrowRight size={17}/></button>
+            </form>
+          </section>
+        </div>
+      )}
+
+      {showInbox && (
+        <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowInbox(false); }}>
+          <section className="modal matches-modal" role="dialog" aria-modal="true" aria-labelledby="inbox-title">
+            <div className="modal-header">
+              <div><div className="eyebrow">PRIVATE MESSAGES</div><h2 id="inbox-title">Your inbox</h2><p>Requests about your reports and replies to requests you sent.</p></div>
+              <button className="icon-button" type="button" onClick={() => setShowInbox(false)} aria-label="Close inbox"><X size={20}/></button>
+            </div>
+            {contactRequests.length === 0 ? (
+              <div className="empty-state compact"><strong>No contact requests yet</strong><p>When someone contacts you about a report, it will appear here.</p></div>
+            ) : (
+              <div className="match-results">
+                {contactRequests.map((request) => {
+                  const received = request.owner_id === currentUser?.id;
+                  const relatedItem = items.find((item) => item.id === request.item_id);
+                  return (
+                    <article className="match-result" key={request.id}>
+                      <div className="match-result-info">
+                        <strong>{received ? "Request about your report" : "Your sent request"}{relatedItem ? `: ${relatedItem.title}` : ""}</strong>
+                        <span>{request.status.toUpperCase()} · {new Date(request.created_at).toLocaleString()}</span>
+                        <p>{request.message}</p>
+                        {request.owner_reply && <small>Owner reply: {request.owner_reply}</small>}
+                        {received && request.status === "pending" && (
+                          <div className="form-row">
+                            <button className="button button-primary button-small" type="button" disabled={contactBusy} onClick={() => void updateContactRequest(request, "accepted")}>Accept</button>
+                            <button className="button button-outline button-small" type="button" disabled={contactBusy} onClick={() => void updateContactRequest(request, "declined")}>Decline</button>
+                          </div>
+                        )}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        </div>
+      )}
+
     </div>
   );
 }
