@@ -1207,8 +1207,9 @@ decoding="async"/>
                       setSelectedFile(file);
                     }}
                   />
-               </label>
-              <p className="privacy-note"><ShieldCheck size={15} /> Photos are stored privately. Avoid including personal contact details or sensitive information in the description.</p>
+                </span>
+              </label>
+              <p className="privacy-note"><ShieldCheck size={15} /> Photos are stored in this browser only. Avoid including personal contact details or sensitive information in the description.</p>
               <button className="button button-primary submit-button" type="submit" disabled={submitting}>{submitting ? "Submitting report..." : "Submit report"} <ArrowRight size={17} /></button>
             </form>
           </section>
@@ -1293,3 +1294,9 @@ decoding="async"/>
   not prove ownership.
 </p>
 
+          </section>
+        </div>
+      )}
+    </div>
+  );
+}
