@@ -100,3 +100,57 @@ create policy "Users can delete photos in their own folder"
     bucket_id = 'item-photos'
     and (storage.foldername(name))[1] = auth.uid()::text
   );
+
+
+-- Private contact requests let a finder/lost-item owner coordinate without exposing email addresses.
+create table if not exists public.item_contact_requests (
+  id uuid primary key default gen_random_uuid(),
+  item_id uuid not null references public.items(id) on delete cascade,
+  owner_id uuid not null references auth.users(id) on delete cascade,
+  sender_id uuid not null references auth.users(id) on delete cascade,
+  message text not null check (char_length(message) between 10 and 1200),
+  owner_reply text,
+  status text not null default 'pending' check (status in ('pending', 'accepted', 'declined')),
+  created_at timestamptz not null default now(),
+  check (owner_id <> sender_id)
+);
+
+create index if not exists item_contact_requests_owner_idx
+  on public.item_contact_requests (owner_id, created_at desc);
+create index if not exists item_contact_requests_sender_idx
+  on public.item_contact_requests (sender_id, created_at desc);
+
+alter table public.item_contact_requests enable row level security;
+grant select, insert on table public.item_contact_requests to authenticated;
+grant update (status, owner_reply) on table public.item_contact_requests to authenticated;
+
+drop policy if exists "Participants can read contact requests" on public.item_contact_requests;
+create policy "Participants can read contact requests"
+  on public.item_contact_requests for select
+  to authenticated
+  using (sender_id = auth.uid() or owner_id = auth.uid());
+
+drop policy if exists "Users can contact the owner of an active report" on public.item_contact_requests;
+create policy "Users can contact the owner of an active report"
+  on public.item_contact_requests for insert
+  to authenticated
+  with check (
+    sender_id = auth.uid()
+    and owner_id <> auth.uid()
+    and exists (
+      select 1 from public.items i
+      where i.id = item_contact_requests.item_id
+        and i.owner_id = item_contact_requests.owner_id
+        and i.status = 'active'
+    )
+  );
+
+drop policy if exists "Only report owners can respond to contact requests" on public.item_contact_requests;
+create policy "Only report owners can respond to contact requests"
+  on public.item_contact_requests for update
+  to authenticated
+  using (owner_id = auth.uid())
+  with check (
+    owner_id = auth.uid()
+    and status in ('accepted', 'declined')
+  );
