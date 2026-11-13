@@ -442,6 +442,15 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reducedMotion) return;
+    const intervalId = window.setInterval(() => {
+      setHeroImageIndex((current) => (current + 1) % HERO_IMAGES.length);
+    }, 6500);
+    return () => window.clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
     if (!selectedFile) {
       setPreviewUrl("");
       return;
