@@ -72,7 +72,7 @@ async function request<T>(
   accessToken?: string
 ): Promise<T> {
   if (!isSupabaseConfigured) {
-    throw new Error("Cloud features are not configured yet. Add the Supabase project URL and publishable anon key.");
+    throw new Error("Cloud features are not configured yet. Add the Supabase project URL and publishable key.");
   }
   const headers = new Headers(options.headers);
   headers.set("apikey", SUPABASE_PUBLISHABLE_KEY);
@@ -145,10 +145,13 @@ export async function getBackendSession(): Promise<BackendSession | null> {
 
 export async function signUpWithPassword(email: string, password: string): Promise<BackendSession | null> {
   const redirectTo = window.location.origin + window.location.pathname;
-  const result = await request<Record<string, unknown>>("/auth/v1/signup", {
-    method: "POST",
-    body: JSON.stringify({ email, password, options: { emailRedirectTo: redirectTo } })
-  });
+  const result = await request<Record<string, unknown>>(
+    `/auth/v1/signup?redirect_to=${encodeURIComponent(redirectTo)}`,
+    {
+      method: "POST",
+      body: JSON.stringify({ email, password })
+    }
+  );
   if (typeof result.access_token === "string") return storeSession(result);
   return null;
 }
