@@ -320,7 +320,7 @@ function formatDate(value: string) {
   return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(date);
 }
 
-type DemoUser = CurrentUser & { password: string };
+type DemoUser = CurrentUser;
 
 const DEMO_ITEMS_KEY = "findit_demo_items";
 const DEMO_USERS_KEY = "findit_demo_users";
@@ -354,7 +354,6 @@ export default function App() {
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [authEmail, setAuthEmail] = useState("");
-  const [authPassword, setAuthPassword] = useState("");
   const [authError, setAuthError] = useState("");
   const [authBusy, setAuthBusy] = useState(false);
   const [pendingReportType, setPendingReportType] = useState<ItemType | null>(null);
@@ -383,35 +382,37 @@ export default function App() {
     "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=2200&q=85"
   ];
 
-  useEffect(() => {
-    const timer = window.setInterval(() => setHeroImageIndex((current) => (current + 1) % heroImages.length), 6500);
-    return () => window.clearInterval(timer);
-  }, []);
+  const storedUsers: Array<CurrentUser & {
+  password?: string;
+}> = JSON.parse(
+  localStorage.getItem(DEMO_USERS_KEY) ?? "[]"
+);
 
-  const [form, setForm] = useState({
-    title: "",
-    category: "Electronics",
-    campus: "Gachon University",
-    location: "",
-    description: "",
-  });
+// Keep only non-secret profile information.
+// This also removes passwords left by the old demo version.
+const users: DemoUser[] = storedUsers.map(
+  ({ id, email }) => ({ id, email })
+);
 
-  async function loadItems() {
-    setLoading(true);
-    setError("");
-    try {
-      const saved = localStorage.getItem(DEMO_ITEMS_KEY);
-      const storedItems: Item[] = saved ? JSON.parse(saved) : createDemoItems();
-      if (!saved) localStorage.setItem(DEMO_ITEMS_KEY, JSON.stringify(storedItems));
-      setItems(storedItems);
-    } catch {
-      const samples = createDemoItems();
-      setItems(samples);
-      localStorage.setItem(DEMO_ITEMS_KEY, JSON.stringify(samples));
-    } finally {
-      setLoading(false);
-    }
+localStorage.setItem(
+  DEMO_USERS_KEY,
+  JSON.stringify(users)
+);
+
+if (sessionId) {
+  const user = users.find(
+    (entry) => entry.id === sessionId
+  );
+
+  if (user) {
+    setCurrentUser({
+      id: user.id,
+      email: user.email
+    });
+  } else {
+    localStorage.removeItem(DEMO_SESSION_KEY);
   }
+}
 
   useEffect(() => {
     void loadItems();
@@ -518,39 +519,85 @@ const foundCount = activeItems.filter(
     startReport(type);
   }
 
-  async function submitAuth(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setAuthBusy(true);
-    setAuthError("");
-    try {
-      const users: DemoUser[] = JSON.parse(localStorage.getItem(DEMO_USERS_KEY) ?? "[]");
-      let user = users.find((entry) => entry.email.toLowerCase() === authEmail.trim().toLowerCase());
-      if (authMode === "register") {
-        if (user) throw new Error("An account with this email already exists. Please sign in.");
-        user = { id: crypto.randomUUID(), email: authEmail.trim(), password: authPassword };
-        users.push(user);
-        localStorage.setItem(DEMO_USERS_KEY, JSON.stringify(users));
-      } else if (!user || user.password !== authPassword) {
-        throw new Error("Email or password is incorrect. Register a demo account first if you are new.");
+  
+async function submitAuth(event: FormEvent<HTMLFormElement>) {
+  event.preventDefault();
+
+  setAuthBusy(true);
+  setAuthError("");
+
+  try {
+    const email = authEmail.trim();
+
+    if (!email) {
+      throw new Error("Please enter your email.");
+    }
+
+    const users: DemoUser[] = JSON.parse(
+      localStorage.getItem(DEMO_USERS_KEY) ?? "[]"
+    );
+
+    let user = users.find(
+      (entry) =>
+        entry.email.toLowerCase() === email.toLowerCase()
+    );
+
+    if (authMode === "register") {
+      if (user) {
+        throw new Error(
+          "A demo profile with this email already exists."
+        );
       }
 
-      localStorage.setItem(DEMO_SESSION_KEY, user.id);
-      setToken(user.id);
-      setCurrentUser({ id: user.id, email: user.email });
-      setShowAuth(false);
-      setAuthMode("login");
-      setAuthPassword("");
-      setNotice(authMode === "register" ? "Your demo account is ready on this browser." : "Welcome back.");
-      if (pendingReportType) {
-        startReport(pendingReportType);
-        setPendingReportType(null);
-      }
-    } catch (err) {
-      setAuthError(err instanceof Error ? err.message : "Authentication failed.");
-    } finally {
-      setAuthBusy(false);
+      user = {
+        id: crypto.randomUUID(),
+        email
+      };
+
+      users.push(user);
+    } else if (!user) {
+      throw new Error(
+        "No local profile exists. Create a demo profile first."
+      );
     }
+
+    localStorage.setItem(
+      DEMO_USERS_KEY,
+      JSON.stringify(users)
+    );
+
+    localStorage.setItem(DEMO_SESSION_KEY, user.id);
+
+    setToken(user.id);
+    setCurrentUser({
+      id: user.id,
+      email: user.email
+    });
+
+    setShowAuth(false);
+    setAuthMode("login");
+
+    setNotice(
+      authMode === "register"
+        ? "Your local demo profile is ready."
+        : "Your demo profile has been restored."
+    );
+
+    if (pendingReportType) {
+      startReport(pendingReportType);
+      setPendingReportType(null);
+    }
+
+  } catch (err) {
+    setAuthError(
+      err instanceof Error
+        ? err.message
+        : "Could not access your demo profile."
+    );
+  } finally {
+    setAuthBusy(false);
   }
+}
 
   function signOut() {
     localStorage.removeItem(DEMO_SESSION_KEY);
@@ -1044,12 +1091,36 @@ async function submitReport(event: FormEvent<HTMLFormElement>) {
         <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowAuth(false); }}>
           <section className="modal auth-modal" role="dialog" aria-modal="true" aria-labelledby="auth-title">
             <div className="modal-header">
-              <div><div className="eyebrow"><ShieldCheck size={13} /> YOUR CAMPUS ACCOUNT</div><h2 id="auth-title">{authMode === "login" ? "Welcome back" : "Create your account"}</h2><p>{authMode === "login" ? "Sign in to post reports and manage your items." : "Join your campus community on FindIt AI."}</p></div>
-              <button className="icon-button" onClick={() => setShowAuth(false)} aria-label="Close sign in"><X size={20} /></button>
+              <div>
+  <div className="eyebrow">
+    <ShieldCheck size={13} /> LOCAL DEMO PROFILE
+  </div>
+
+  <h2 id="auth-title">
+    {authMode === "login"
+      ? "Welcome back"
+      : "Create a demo profile"}
+  </h2>
+
+  <p>
+    Your profile is stored in this browser only.
+    This is not secure server authentication.
+  </p>
+</div>
             </div>
             {authError && <div className="alert alert-error" role="alert">{authError}</div>}
             <form className="report-form auth-form" onSubmit={submitAuth}>
-              <label className="field-label">University email<input type="email" required autoComplete="email" value={authEmail} onChange={(event) => setAuthEmail(event.target.value)} placeholder="you@university.edu" /></label>
+              <label className="field-label">
+  Demo email
+  <input
+    type="email"
+    required
+    autoComplete="email"
+    value={authEmail}
+    onChange={(event) => setAuthEmail(event.target.value)}
+    placeholder="you@university.edu"
+  />
+</label>
               <label className="field-label">Password<input type="password" required minLength={8} maxLength={128} autoComplete={authMode === "login" ? "current-password" : "new-password"} value={authPassword} onChange={(event) => setAuthPassword(event.target.value)} placeholder="At least 8 characters" /></label>
               <button className="button button-primary submit-button" type="submit" disabled={authBusy}>{authBusy ? "Please wait..." : authMode === "login" ? "Sign in" : "Create account"} <ArrowRight size={17} /></button>
             </form>
