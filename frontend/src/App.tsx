@@ -480,6 +480,7 @@ export default function App() {
         setBackendSession(restored);
         setToken(restored?.access_token ?? "");
         setCurrentUser(restored ? { id: restored.user.id, email: restored.user.email ?? "" } : null);
+        if (restored?.user.user_metadata?.country) setCountry(restored.user.user_metadata.country);
         await loadItems();
         return;
       }
@@ -510,6 +511,7 @@ export default function App() {
           setBackendSession(restored);
           setToken(restored?.access_token ?? "");
           setCurrentUser(restored ? { id: restored.user.id, email: restored.user.email ?? "" } : null);
+          if (restored?.user.user_metadata?.country) setCountry(restored.user.user_metadata.country);
         });
       }
       if (event.key === DEMO_SESSION_KEY && !isSupabaseConfigured) {
@@ -677,7 +679,7 @@ async function submitAuth(event: FormEvent<HTMLFormElement>) {
     if (isSupabaseConfigured) {
       if (authPassword.length < 8) throw new Error("Use a password with at least 8 characters.");
       if (authMode === "register") {
-        const session = await signUpWithPassword(email, authPassword);
+        const session = await signUpWithPassword(email, authPassword, authCountry);
         if (!session) {
           setShowAuth(false);
           setAuthPassword("");
@@ -694,6 +696,9 @@ async function submitAuth(event: FormEvent<HTMLFormElement>) {
         setBackendSession(session);
         setToken(session.access_token);
         setCurrentUser({ id: session.user.id, email: session.user.email ?? email });
+        const savedCountry = session.user.user_metadata?.country || localStorage.getItem("findit_profile_country:" + email) || country;
+        setCountry(savedCountry);
+        localStorage.setItem("findit_profile_country:" + email, savedCountry);
         setNotice("You are signed in to FindIt AI.");
       }
     } else {
