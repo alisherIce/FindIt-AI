@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Crosshair, MapPin, Search } from "lucide-react";
 
 declare global {
@@ -141,10 +141,11 @@ export default function GoogleMapPicker({ country, value, onChange }: Props) {
     }
   }
 
-  async function searchAddress(event: React.FormEvent<HTMLFormElement>) {
+  async function searchAddress(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!query.trim() || !geocoderRef.current) return;
     setSearching(true);
+    setLoadError("");
     const view = COUNTRY_VIEW[country] ?? DEFAULT_VIEW;
     try {
       const response = await geocoderRef.current.geocode({
