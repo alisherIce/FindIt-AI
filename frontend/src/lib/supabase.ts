@@ -12,7 +12,7 @@ export type BackendSession = {
   access_token: string;
   refresh_token: string;
   expires_at: number;
-  user: { id: string; email?: string };
+  user: { id: string; email?: string; user_metadata?: { country?: string } };
 };
 
 export type ReportInsert = {
@@ -62,7 +62,7 @@ function storeSession(payload: Record<string, unknown>): BackendSession {
     access_token: accessToken,
     refresh_token: refreshToken,
     expires_at: expiresAt,
-    user: { id: user.id, email: user.email }
+    user: { id: user.id, email: user.email, user_metadata: user.user_metadata }
   };
   localStorage.setItem(SUPABASE_SESSION_KEY, JSON.stringify(session));
   return session;
@@ -145,13 +145,13 @@ export async function getBackendSession(): Promise<BackendSession | null> {
   }
 }
 
-export async function signUpWithPassword(email: string, password: string): Promise<BackendSession | null> {
+export async function signUpWithPassword(email: string, password: string, country: string): Promise<BackendSession | null> {
   const redirectTo = window.location.origin + window.location.pathname;
   const result = await request<Record<string, unknown>>(
     `/auth/v1/signup?redirect_to=${encodeURIComponent(redirectTo)}`,
     {
       method: "POST",
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email, password, data: { country } })
     }
   );
   if (typeof result.access_token === "string") return storeSession(result);
