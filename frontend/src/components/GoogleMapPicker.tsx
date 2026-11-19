@@ -60,7 +60,7 @@ export default function GoogleMapPicker({ country, value, onChange }: Props) {
   useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
 
   useEffect(() => {
-    const key = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined;
+    const key = (import.meta as ImportMeta & { env: Record<string, string | undefined> }).env.VITE_GOOGLE_MAPS_API_KEY;
     if (!key) {
       setLoadError("Google Maps API key is not configured yet. Add VITE_GOOGLE_MAPS_API_KEY to the deployment environment.");
       return;
