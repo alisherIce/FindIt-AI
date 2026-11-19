@@ -22,6 +22,8 @@ export type ReportInsert = {
   campus: string;
   country: string;
   location: string;
+  latitude: number | null;
+  longitude: number | null;
   description: string;
   image_path: string;
   owner_id: string;
@@ -176,7 +178,7 @@ export async function signOutFromBackend(): Promise<void> {
 }
 
 export async function listBackendItems(): Promise<BackendItem[]> {
-  const query = "?select=id,item_type,title,category,campus,country,location,description,image_path,status,owner_id,created_at&status=eq.active&order=created_at.desc&limit=250";
+  const query = "?select=id,item_type,title,category,campus,country,location,latitude,longitude,description,image_path,status,owner_id,created_at&status=eq.active&order=created_at.desc&limit=250";
   return request<BackendItem[]>(`/rest/v1/items${query}`);
 }
 
