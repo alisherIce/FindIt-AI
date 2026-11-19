@@ -761,7 +761,7 @@ async function submitReport(event: FormEvent<HTMLFormElement>) {
     return;
   }
   if (!selectedLocation) {
-    setError("Please choose the location on Google Maps.");
+    setError("Please choose a location on the map. Click the map or search for an address.");
     return;
   }
   if (!currentUser) {
@@ -1442,6 +1442,7 @@ decoding="async"/>
               <button className={reportType === "found" ? "type-option active-found" : "type-option"} onClick={() => setReportType("found")}><Check size={16} /> I found this</button>
             </div>
             <form onSubmit={submitReport} className="report-form">
+              {error && <div className="alert alert-error" role="alert">{error}</div>}
               <label className="field-label">Item name<input required minLength={2} maxLength={120} value={form.title} onChange={(event) => updateForm("title", event.target.value)} placeholder="e.g. Black leather wallet" /></label>
               <div className="form-row">
                 <label className="field-label">Category<select value={form.category} onChange={(event) => updateForm("category", event.target.value)}><option>Electronics</option><option>Accessories</option><option>Documents</option><option>Books</option><option>Clothing</option><option>Personal item</option><option>Other</option></select><ChevronDown className="select-chevron" size={15} /></label>
@@ -1482,6 +1483,7 @@ decoding="async"/>
                 </span>
               </label>
               <p className="privacy-note"><ShieldCheck size={15} /> {isSupabaseConfigured ? "Photos are uploaded to the shared FindIt AI photo bucket." : "Photos are stored in this browser only."} Avoid including personal contact details or sensitive information in photos or descriptions.</p>
+              {!currentUser && <p className="map-status map-error" role="status">Please sign in before submitting a report.</p>}
               <button className="button button-primary submit-button" type="submit" disabled={submitting}>{submitting ? "Submitting report..." : "Submit report"} <ArrowRight size={17} /></button>
             </form>
           </section>
