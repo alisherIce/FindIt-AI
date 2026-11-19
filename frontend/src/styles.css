@@ -946,3 +946,18 @@ button:focus-visible, a:focus-visible, select:focus-visible {
 .world-map-shapes { display:none; }
 @media(max-width:850px){.world-map-canvas{height:auto !important;min-height:0 !important;aspect-ratio:2 / 1}}
 @media(max-width:600px){.world-map-canvas{height:auto !important;min-height:0 !important;aspect-ratio:2 / 1}}
+
+/* Google Maps location picker */
+.google-location-picker{display:grid;gap:10px;margin-top:8px}
+.map-search-row{display:flex;gap:8px;align-items:stretch}
+.map-address-search{display:flex;align-items:center;gap:9px;flex:1;min-width:0;padding:0 10px;border:1px solid var(--line,#dbe2e8);border-radius:12px;background:var(--surface,#fff);color:var(--text,#182532)}
+.map-address-search input{flex:1;min-width:0;border:0!important;outline:0!important;background:transparent!important;box-shadow:none!important;padding:12px 0!important}
+.map-address-search button,.map-current-location{border:0;border-radius:10px;padding:0 14px;background:#172c3d;color:#fff;font-weight:700;white-space:nowrap}
+.map-current-location{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:#eaf1f5;color:#1b3446;border:1px solid #d7e1e8}
+.map-current-location:disabled,.map-address-search button:disabled{opacity:.55;cursor:not-allowed}
+.google-map-canvas{width:100%;height:340px;border:1px solid #d8e0e7;border-radius:14px;overflow:hidden;background:#e8eef2}
+.map-status{margin:0;padding:9px 11px;border-radius:9px;background:#eef4f7;color:#435769;font-size:12px}
+.map-error{background:#fff0ed;color:#9a382c}
+.map-selection-caption{display:flex;align-items:flex-start;gap:8px;color:#536475;font-size:12px;line-height:1.5}
+.map-selection-caption svg{flex:0 0 auto;color:#df6654;margin-top:1px}
+@media(max-width:600px){.map-search-row{flex-direction:column}.map-current-location{min-height:42px}.google-map-canvas{height:280px}}
