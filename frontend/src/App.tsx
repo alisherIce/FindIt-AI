@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import GoogleMapPicker from "./components/GoogleMapPicker";
 import {
   BackendSession,
   createBackendItem,
@@ -61,6 +62,8 @@ type Item = {
   campus: string;
   country?: string;
   location: string;
+  latitude?: number | null;
+  longitude?: number | null;
   description: string;
   image_filename: string;
   image_url?: string;
@@ -85,6 +88,8 @@ function fromBackendItem(row: import("./lib/supabase").BackendItem): Item {
     campus: row.campus,
     country: row.country,
     location: row.location,
+    latitude: row.latitude,
+    longitude: row.longitude,
     description: row.description,
     image_filename: row.image_path.split("/").pop() ?? "item-photo",
     image_url: publicItemPhotoUrl(row.image_path),
@@ -413,7 +418,9 @@ export default function App() {
   const [matchesFor, setMatchesFor] = useState<Item | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
   const [notice, setNotice] = useState("");
-  const [country, setCountry] = useState("South Korea");
+  const [country, setCountry] = useState(() => localStorage.getItem("findit_profile_country") || "South Korea");
+  const [selectedLocation, setSelectedLocation] = useState<{address:string;latitude:number;longitude:number}|null>(null);
+  const [authCountry, setAuthCountry] = useState("South Korea");
   const [showResultsFilters, setShowResultsFilters] = useState(false);
   const [pickedDate, setPickedDate] = useState("");
   const [heroImageIndex, setHeroImageIndex] = useState(0);
@@ -637,6 +644,7 @@ const foundCount = activeItems.filter(
       description: "",
     });
     setSelectedFile(null);
+    setSelectedLocation(null);
     setShowReport(true);
   }
 
@@ -660,6 +668,10 @@ async function submitAuth(event: FormEvent<HTMLFormElement>) {
   try {
     const email = authEmail.trim().toLowerCase();
     if (!email) throw new Error("Please enter your email.");
+    const chosenCountry = authMode === "register" ? authCountry : (localStorage.getItem(`findit_profile_country:${email}`) || country);
+    setCountry(chosenCountry);
+    localStorage.setItem("findit_profile_country", chosenCountry);
+    localStorage.setItem(`findit_profile_country:${email}`, chosenCountry);
 
     if (isSupabaseConfigured) {
       if (authPassword.length < 8) throw new Error("Use a password with at least 8 characters.");
@@ -742,6 +754,10 @@ async function submitReport(event: FormEvent<HTMLFormElement>) {
     setError("Please choose a photo of the item.");
     return;
   }
+  if (!selectedLocation) {
+    setError("Please choose the location on Google Maps.");
+    return;
+  }
   if (!currentUser) {
     setError("Sign in before submitting a report.");
     return;
@@ -765,7 +781,9 @@ async function submitReport(event: FormEvent<HTMLFormElement>) {
         category: form.category,
         campus: form.campus.trim(),
         country: nextCountry,
-        location: form.location.trim(),
+        location: selectedLocation.address,
+        latitude: selectedLocation.latitude,
+        longitude: selectedLocation.longitude,
         description: form.description.trim(),
         image_path: uploadedPath,
         owner_id: currentUser.id
@@ -780,7 +798,9 @@ async function submitReport(event: FormEvent<HTMLFormElement>) {
         category: form.category,
         campus: form.campus.trim(),
         country: nextCountry,
-        location: form.location.trim(),
+        location: selectedLocation.address,
+        latitude: selectedLocation.latitude,
+        longitude: selectedLocation.longitude,
         description: form.description.trim(),
         image_filename: selectedFile.name,
         image_url: compressedImage,
@@ -796,6 +816,7 @@ async function submitReport(event: FormEvent<HTMLFormElement>) {
 
     setShowReport(false);
     setSelectedFile(null);
+    setSelectedLocation(null);
     setForm({ title: "", category: "Electronics", campus: "Gachon University", location: "", description: "" });
     void loadItems();
   } catch (err) {
@@ -1362,7 +1383,14 @@ decoding="async"/>
             </div>
             {authError && <div className="alert alert-error" role="alert">{authError}</div>}
             <form className="report-form auth-form" onSubmit={submitAuth}>
-              <label className="field-label">
+              {authMode === "register" && (
+  <label className="field-label">Your country
+    <select value={authCountry} onChange={(event) => setAuthCountry(event.target.value)}>
+      <option>South Korea</option><option>United States</option><option>United Kingdom</option><option>Uzbekistan</option><option>Japan</option><option>Canada</option><option>Australia</option><option>Germany</option><option>France</option><option>Singapore</option><option>United Arab Emirates</option>
+    </select>
+  </label>
+)}
+<label className="field-label">
   Email address
   <input
     type="email"
@@ -1413,7 +1441,7 @@ decoding="async"/>
                 <label className="field-label">Category<select value={form.category} onChange={(event) => updateForm("category", event.target.value)}><option>Electronics</option><option>Accessories</option><option>Documents</option><option>Books</option><option>Clothing</option><option>Personal item</option><option>Other</option></select><ChevronDown className="select-chevron" size={15} /></label>
                 <label className="field-label">Campus<input required minLength={2} maxLength={120} value={form.campus} onChange={(event) => updateForm("campus", event.target.value)} /></label>
               </div>
-              <label className="field-label">Where was it {reportType === "lost" ? "last seen" : "found"}?<input required minLength={2} maxLength={160} value={form.location} onChange={(event) => updateForm("location", event.target.value)} placeholder="e.g. Central Library, 2nd floor" /></label>
+              <div className="field-label"><span>Where was it {reportType === "lost" ? "last seen" : "found"}? <span className="required-label">Choose on map</span></span><GoogleMapPicker country={country} value={selectedLocation} onChange={setSelectedLocation} /></div>
               <label className="field-label">Additional details <span className="optional-label">Optional</span><textarea maxLength={1000} rows={3} value={form.description} onChange={(event) => updateForm("description", event.target.value)} placeholder="Color, brand, or other helpful details..." /></label>
               <label className="field-label">Item photo <span className="required-label">Required</span>
                 <span className="upload-box">
