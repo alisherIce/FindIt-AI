@@ -421,6 +421,7 @@ export default function App() {
   const [country, setCountry] = useState(() => localStorage.getItem("findit_profile_country") || "South Korea");
   const [selectedLocation, setSelectedLocation] = useState<{address:string;latitude:number;longitude:number}|null>(null);
   const [authCountry, setAuthCountry] = useState("South Korea");
+  useEffect(() => { localStorage.setItem("findit_profile_country", country); }, [country]);
   const [showResultsFilters, setShowResultsFilters] = useState(false);
   const [pickedDate, setPickedDate] = useState("");
   const [heroImageIndex, setHeroImageIndex] = useState(0);
