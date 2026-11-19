@@ -86,8 +86,8 @@ export default function GoogleMapPicker({ country, value, onChange }: Props) {
     setQuery(address); onChangeRef.current({ address, latitude: lat, longitude: lon });
   }
 
-  async function searchAddress(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); if (!query.trim()) return;
+  async function searchAddress() {
+    if (!query.trim()) return;
     setSearching(true); setLoadError("");
     try {
       const url = new URL("https://nominatim.openstreetmap.org/search");
@@ -111,10 +111,24 @@ export default function GoogleMapPicker({ country, value, onChange }: Props) {
 
   return <div className="google-location-picker">
     <div className="map-search-row">
-      <form className="map-address-search" onSubmit={searchAddress}>
-        <Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Search a place in ${country}...`} aria-label="Search map location" />
-        <button type="submit" disabled={searching || !ready}>{searching ? "Searching…" : "Search"}</button>
-      </form>
+      <div className="map-address-search">
+        <Search size={17} />
+        <input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              void searchAddress();
+            }
+          }}
+          placeholder={`Search a place in ${country}...`}
+          aria-label="Search map location"
+        />
+        <button type="button" onClick={() => void searchAddress()} disabled={searching || !ready}>
+          {searching ? "Searching…" : "Search"}
+        </button>
+      </div>
       <button className="map-current-location" type="button" onClick={useMyLocation} disabled={!ready}><Crosshair size={16} /> Use my location</button>
     </div>
     {loadError && <p className="map-status map-error" role="status">{loadError}</p>}
